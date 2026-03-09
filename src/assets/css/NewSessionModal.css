@@ -1,0 +1,61 @@
+.ns-modal__error {
+  --accent-start: #ff6b6b;
+  --accent-end: #ff4757;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: #f3052d;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+  border-left: 4px solid rgba(255,107,107,0.95);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  backdrop-filter: blur(6px) saturate(120%);
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  font-size: 0.96rem;
+  line-height: 1.2;
+  animation: ns-error-pop 260ms cubic-bezier(.2,.9,.28,1) both;
+  transform-origin: top center;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ns-modal__error:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(15, 23, 42, 0.09);
+}
+
+.ns-modal__error::before {
+  content: "!";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex: 0 0 36px;
+  background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+  box-shadow: 0 6px 14px rgba(255,71,87,0.18);
+}
+
+@keyframes ns-error-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* subtle emphasis for long content */
+.ns-modal__error code,
+.ns-modal__error pre {
+  white-space: pre-wrap;
+}

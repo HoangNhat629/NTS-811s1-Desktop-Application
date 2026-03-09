@@ -1,0 +1,241 @@
+.connection-root {
+  display: flex;
+  gap: 40px;
+  margin: 0;
+  background: linear-gradient(180deg, #151515 0%, #1e1e1e 100%);
+  color: #d7d7d7;
+  padding: 48px;
+  min-height: 100vh;
+  align-items: flex-start;
+}
+
+.connection-column {
+  width: 360px;
+}
+
+.connection-column h2 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: #ffffff;
+  letter-spacing: 0.2px;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #6fd3ff;
+  cursor: pointer;
+  padding: 8px 12px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.link-btn:hover {
+  text-decoration: none;
+  color: #9be7ff;
+  background-color: rgba(111, 211, 255, 0.1);
+}
+
+.link-btn:active {
+  transform: scale(0.98);
+}
+
+.link-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.link-btn:hover svg {
+  transform: scale(1.1);
+}
+
+/* Dark mode support for link-btn */
+[data-theme="dark"] .link-btn {
+  color: #6fd3ff;
+}
+
+[data-theme="dark"] .link-btn:hover {
+  color: #9be7ff;
+  background-color: rgba(111, 211, 255, 0.08);
+}
+
+.recent-connection-item {
+  padding: 12px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition:
+    background 160ms ease,
+    transform 120ms ease,
+    box-shadow 160ms ease;
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.recent-connection-item:hover {
+  background: rgba(255, 255, 255, 0.02);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+}
+
+.recent-connection-item[aria-disabled="true"],
+.recent-connection-item.disabled {
+  pointer-events: none;
+  opacity: 0.6;
+  transform: none;
+}
+
+.connection-title {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.connection-subtitle {
+  font-size: 12px;
+  color: #9aa0a6;
+}
+
+.recent-connection-item .right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Modal */
+
+.connection-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+}
+
+.connection-modal {
+  background: linear-gradient(180deg, #242526 0%, #2b2b2c 100%);
+  padding: 20px;
+  width: 420px;
+  max-width: calc(100% - 48px);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.connection-modal h3 {
+  margin-top: 0;
+  color: #ffffff;
+  font-size: 18px;
+}
+
+.connection-modal label {
+  font-size: 12px;
+  color: #bbbbbb;
+}
+
+.connection-modal input {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  background: #161616;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+  border-radius: 6px;
+}
+
+.connection-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 600;
+}
+.btn.primary {
+  background: linear-gradient(90deg, #ff5b6b, #ee0034);
+  color: white;
+  box-shadow: 0 6px 18px rgba(238, 0, 52, 0.14);
+}
+.btn.secondary {
+  background: rgba(255, 255, 255, 0.03);
+  color: #e6e6e6;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+
+.more-item {
+  text-align: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+}
+.more-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.status-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-left: 10px;
+  border-radius: 50%;
+  transition: all 160ms ease;
+}
+
+.status-dot.online {
+  background-color: #22c55e;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.24);
+}
+
+.status-dot.offline {
+  background-color: #ef4444;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.22);
+}
+
+.status-dot.checking {
+  background-color: #9ca3af;
+}
+
+.status-dot.disabled {
+  background-color: #ddd;
+}
+
+@media (max-width: 980px) {
+  .connection-root {
+    flex-direction: column;
+    padding: 24px;
+    gap: 24px;
+  }
+  .connection-column {
+    width: 100%;
+  }
+  .connection-modal {
+    width: calc(100% - 32px);
+  }
+}
+
+.delete-icon-btn {
+  cursor: pointer;
+  transition:
+    opacity 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+  color: #fff;
+}
+
+.delete-icon-btn:hover {
+  color: #c60c30;
+}

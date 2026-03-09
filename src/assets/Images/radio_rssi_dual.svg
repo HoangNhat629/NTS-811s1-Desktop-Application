@@ -1,0 +1,276 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+
+<svg width="100%" height="100%" version="1.1" onload='init(evt)' xmlns="http://www.w3.org/2000/svg">
+	<g id='graph' style='font-family: monospace; font-weight: 600'>
+		<path id='graph_rssi_ch1' d='' fill='orange' fill-opacity='0.3' stroke='red' stroke-width='0.8' stroke-opacity='1' />
+		<path id='graph_rssi_ch2' d='' fill='blue' fill-opacity='0.3' stroke='blue' stroke-width='0.8' stroke-opacity='1' />
+
+		<text id='graph_rssi_ch1_lbl' x='20%' y='10' fill='#ff5733' text-anchor='end'>CH1</text>
+		<text id='graph_rssi_ch1_txt' x='22%' y='10' fill='#ff5733' text-anchor='start'>--</text>
+
+		<text id='graph_rssi_ch2_lbl' x='70%' y='10' fill='blue' text-anchor='end'>CH2</text>
+		<text id='graph_rssi_ch2_txt' x='72%' y='10' fill='blue' text-anchor='start'>--</text>
+
+		<line x1="0" y1="25%" x2="100%" y2="25%" style="stroke:black;stroke-width:0.1" />
+		<text id="label_75" x="70" y="25%" fill='gray' text-anchor='end'> </text>
+
+		<line x1="0" y1="50%" x2="100%" y2="50%" style="stroke:black;stroke-width:0.1" />
+		<text id="label_50" x="70" y="50%" fill='gray' text-anchor='end'> </text>
+
+		<line x1="0" y1="75%" x2="100%" y2="75%" style="stroke:black;stroke-width:0.1" />
+		<text id="label_25" x="70" y="75%" fill='gray' text-anchor='end'> </text>
+
+		<text id='error' x='50%' y='50%' text-anchor='middle' visibility='hidden' fill='#2e81c9'>Error: Cannot collect data</text>
+		<text id='collect_initial' x='50%' y='50%' text-anchor='middle' visibility='hidden' fill='gray'>Collecting data, please wait...</text>
+	</g>
+	<script type="text/ecmascript">
+	<![CDATA[
+		const GRAPH_WIDTH = 380;
+		const GRAPH_HEIGH = 120;
+		var max_num_points = 120;
+		const GRAPH_UPDATE_INTERVAL = 1000;
+
+		var fetch_url = '/api/getradrssi';
+
+		var SVGDoc = null;
+		var max = 0;
+		var plot_rssi_ch1 = new Array();
+		var plot_rssi_ch2 = new Array();
+		var step = GRAPH_WIDTH / max_num_points;
+
+		var last_data_timestamp = 0;
+		var last_data_rssi_peak = 0;
+		var last_data_rssi_abs_peak = 0;
+
+		function init(evt) {
+			SVGDoc = evt.target.ownerDocument;
+
+			/* prefill datasets */
+			for (let i = 0; i < max_num_points; i++)
+			{
+				plot_rssi_ch1.push(0);
+				plot_rssi_ch2.push(0);
+			}
+
+			/** fetch the first data */
+			fetch_data();
+
+			/** set interval to update data */
+			setInterval('fetch_data()', GRAPH_UPDATE_INTERVAL);
+		};
+
+		function fetch_data() {
+			if (fetch_url) {
+				getURL(fetch_url, plot_data);
+			} else {
+				handle_error();
+			}
+		};
+
+		var getURL = function(url, callback) {
+			if (!url) throw 'No URL for getURL';
+			try {
+				if (typeof callback.operationComplete == 'function') {
+					callback = callback.operationComplete;
+				}
+			} catch (e) {}
+			if (typeof callback != 'function') {
+				throw 'No callback function for getURL';
+			}
+			var http_request = null;
+			if (typeof XMLHttpRequest != 'undefined') {
+				http_request = new XMLHttpRequest();
+			}
+			else {
+				if (typeof ActiveXObject != 'undefined') {
+					try {
+						http_request = new ActiveXObject('Msxml2.XMLHTTP');
+					} catch (e) {
+						try {
+							http_request = new ActiveXObject('Microsoft.XMLHTTP');
+						} catch (e) {}
+					}
+				}
+			}
+			if (!http_request) {
+				throw 'Both getURL and XMLHttpRequest are undefined';
+			}
+
+			http_request.timeout = GRAPH_UPDATE_INTERVAL * 0.9;
+			http_request.ontimeout = (e) => {
+				// XMLHttpRequest timed out. Do something here.
+			};
+
+			http_request.onreadystatechange = function() {
+				if (http_request.readyState == 4 && http_request.status == 200) {
+					callback({
+					success: true,
+					content: http_request.responseText,
+					contentType: http_request.getResponseHeader("Content-Type")
+					});
+				}
+			};
+			http_request.open('GET', url, true);
+			http_request.send(null);
+		};
+
+		function plot_data(obj) {
+			if (!obj.success) return handle_error();
+			if (!obj.content) return handle_error();
+
+			let ret_data = JSON.parse(obj.content);
+			
+			if(!ret_data.success) return handle_error();
+
+			// Check data available
+			if(ret_data.data && ret_data.data.length === 0) {
+				SVGDoc.getElementById("collect_initial").setAttributeNS(null, 'visibility', 'visible');
+				return;
+			}
+
+			let ret_rssi_data = ret_data.data;
+
+			const DATA_IDX_TIME = 0;
+			const DATA_IDX_RSSI_ADRV = 1;
+			const DATA_IDX_RSSI_CH1 = 2;
+			const DATA_IDX_RSSI_CH2 = 4;
+
+			last_data_rssi_abs_peak = 102;
+			for (let i = 0; i < ret_rssi_data.length; i++)
+			{
+				last_data_rssi_abs_peak = Math.max(last_data_rssi_abs_peak, Math.abs(ret_rssi_data[i][DATA_IDX_RSSI_CH1]));
+				last_data_rssi_abs_peak = Math.max(last_data_rssi_abs_peak, Math.abs(ret_rssi_data[i][DATA_IDX_RSSI_CH2]));
+			}
+			for (let i = 0; i < plot_rssi_ch1.length; i++)
+			{
+				last_data_rssi_abs_peak = Math.max(last_data_rssi_abs_peak, Math.abs(plot_rssi_ch1[i]));
+				last_data_rssi_abs_peak = Math.max(last_data_rssi_abs_peak, Math.abs(plot_rssi_ch2[i]));
+			}
+
+			// Check overlap time data
+			for (let i = 0; i < ret_rssi_data.length; i++)
+			{
+				/* skip overlapping entries */
+				if (ret_rssi_data[i][DATA_IDX_TIME] <= last_data_timestamp)
+					continue;
+				
+				plot_rssi_ch1.push(ret_rssi_data[i][DATA_IDX_RSSI_CH1] + last_data_rssi_abs_peak);
+				plot_rssi_ch2.push(ret_rssi_data[i][DATA_IDX_RSSI_CH2] + last_data_rssi_abs_peak);
+			}
+
+			/* find peak */
+			last_data_rssi_peak = 0;
+			for (var i = 0; i < plot_rssi_ch1.length; i++)
+			{
+				last_data_rssi_peak = Math.max(last_data_rssi_peak, plot_rssi_ch1[i]);
+			}
+
+			for (var i = 0; i < plot_rssi_ch2.length; i++)
+			{
+				last_data_rssi_peak = Math.max(last_data_rssi_peak, plot_rssi_ch2[i]);
+			}
+
+			/* cut off outdated entries */
+			last_data_timestamp = ret_rssi_data[ret_rssi_data.length-1][DATA_IDX_TIME];
+			plot_rssi_ch1 = plot_rssi_ch1.slice(plot_rssi_ch1.length - max_num_points, plot_rssi_ch1.length);
+			plot_rssi_ch2 = plot_rssi_ch2.slice(plot_rssi_ch2.length - max_num_points, plot_rssi_ch2.length);
+
+			/* Show label last data */
+			SVGDoc.getElementById('graph_rssi_ch1_txt').firstChild.data = formatRssi(plot_rssi_ch1[plot_rssi_ch1.length - 1] - last_data_rssi_abs_peak);
+			SVGDoc.getElementById('graph_rssi_ch2_txt').firstChild.data = formatRssi(plot_rssi_ch2[plot_rssi_ch2.length - 1] - last_data_rssi_abs_peak);
+
+			SVGDoc.getElementById('label_75').firstChild.data = formatRssi((3 * last_data_rssi_peak / 4) - last_data_rssi_abs_peak);
+			SVGDoc.getElementById('label_50').firstChild.data = formatRssi((2 * last_data_rssi_peak / 4) - last_data_rssi_abs_peak);
+			SVGDoc.getElementById('label_25').firstChild.data = formatRssi((last_data_rssi_peak / 4) - last_data_rssi_abs_peak);
+
+			SVGDoc.getElementById('error').setAttributeNS(null, 'visibility', 'hidden');
+			SVGDoc.getElementById("collect_initial").setAttributeNS(null, 'visibility', 'hidden');
+
+			// Plot data on graph
+			let data_scale = (GRAPH_HEIGH / (last_data_rssi_peak * 1.1)).toFixed(5);
+			let path_rssi_ch1 = "M 0 " + (GRAPH_HEIGH - (plot_rssi_ch1[0] * data_scale));
+
+			for (i = 1; i < plot_rssi_ch1.length; i++) {
+				var x = step * i;
+				var y_in = GRAPH_HEIGH - (plot_rssi_ch1[i] * data_scale);
+				var fy_in = y_in;
+				if (i < plot_rssi_ch1.length - 1) {
+					var fy_in = GRAPH_HEIGH - (plot_rssi_ch1[i + 1] * data_scale);
+				}
+				path_rssi_ch1 += " Q" + x + " " + y_in + " " + (x + step / 2) + " " + ((y_in + fy_in) / 2);
+			}
+			path_rssi_ch1 += " L" + x + ` ${GRAPH_HEIGH} L 0 ${GRAPH_HEIGH} Z`;
+
+	  		SVGDoc.getElementById('graph_rssi_ch1').setAttributeNS(null, 'd', path_rssi_ch1);
+
+			let path_rssi_ch2 = "M 0 " + (GRAPH_HEIGH - (plot_rssi_ch2[0] * data_scale));
+
+			for (i = 1; i < plot_rssi_ch2.length; i++) {
+				var x = step * i;
+				var y_in = GRAPH_HEIGH - (plot_rssi_ch2[i] * data_scale);
+				var fy_in = y_in;
+				if (i < plot_rssi_ch2.length - 1) {
+					var fy_in = GRAPH_HEIGH - (plot_rssi_ch2[i + 1] * data_scale);
+				}
+				path_rssi_ch2 += " Q" + x + " " + y_in + " " + (x + step / 2) + " " + ((y_in + fy_in) / 2);
+			}
+			path_rssi_ch2 += " L" + x + ` ${GRAPH_HEIGH} L 0 ${GRAPH_HEIGH} Z`;
+
+	  		SVGDoc.getElementById('graph_rssi_ch2').setAttributeNS(null, 'd', path_rssi_ch2);
+		}
+
+		function formatRssi(rssi) {
+			return `${rssi.toFixed(1)} dBm`;
+		};
+
+		function handle_error() {
+			SVGDoc.getElementById("error").setAttributeNS(null, 'visibility', 'visible');
+		};
+
+		/*
+		// Simulator data
+		var simulator_data = [ ];
+		var simulator_max_data_len = 60;
+		function getRandomInt(max) {
+			return Math.floor(Math.random() * max);
+		}
+		setInterval(() => {
+			const timeEpoch = Math.round(new Date()/1000);
+			const sim_rssi_adrv = getRandomInt(150);
+			const sim_rssi_ch1 = -1 * getRandomInt(150);
+			const sim_snr_ch1 = getRandomInt(150);
+			const sim_rssi_ch2 = -1 * getRandomInt(150);
+			const sim_snr_ch2 = getRandomInt(150);
+			simulator_data.push([
+				timeEpoch,
+				sim_rssi_adrv,
+				sim_rssi_ch1,
+				sim_snr_ch1,
+				sim_rssi_ch2,
+				sim_snr_ch2
+			]);
+	
+			if(simulator_data.length > simulator_max_data_len) {
+				simulator_data = simulator_data.slice(1);
+			}
+		}, 1000);
+
+		setInterval(() => {
+			let httpData = {
+				success: true,
+				data: simulator_data,
+			};
+
+			console.log(simulator_data);
+
+			let httpObj = {
+				success : true,
+				content : JSON.stringify(httpData),
+			};
+			plot_data(httpObj);
+		}, 1000);
+		*/
+	]]>
+  </script>
+</svg>

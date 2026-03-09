@@ -1,0 +1,184 @@
+.save-all-progress-container {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  right: 0;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  padding: 12px 16px;
+  z-index: 1000;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.save-all-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.save-all-progress-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #212529;
+}
+
+.save-all-progress-percentage {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0d6efd;
+}
+
+.save-all-progress-bar-wrapper {
+  margin-bottom: 10px;
+}
+
+.save-all-progress-bar-background {
+  width: 100%;
+  height: 6px;
+  background-color: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.save-all-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0d6efd, #0dcaf0);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.save-all-progress-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.save-all-progress-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  transition: background-color 0.2s ease;
+}
+
+.save-all-progress-item-pending {
+  background-color: #f0f0f0;
+  color: #6c757d;
+}
+
+.save-all-progress-item-processing {
+  background-color: #fff3cd;
+  color: #856404;
+  font-weight: 500;
+}
+
+.save-all-progress-item-done {
+  background-color: #d4edda;
+  color: #155724;
+  font-weight: 500;
+}
+
+.save-all-progress-item-failed {
+  background-color: #f8d7da;
+  color: #721c24;
+  font-weight: 500;
+}
+
+.save-all-progress-item-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.save-all-progress-item-label {
+  font-weight: 500;
+}
+
+.save-all-progress-item-error {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.save-all-progress-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.spinner-dots {
+  font-size: 16px;
+  animation: pulse 1s infinite;
+}
+
+.spinner-pulse {
+  font-size: 12px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.icon-check {
+  color: #28a745;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.icon-cross {
+  color: #dc3545;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* Custom scrollbar cho progress items */
+.save-all-progress-items::-webkit-scrollbar {
+  width: 4px;
+}
+
+.save-all-progress-items::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.save-all-progress-items::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 2px;
+}
+
+.save-all-progress-items::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}

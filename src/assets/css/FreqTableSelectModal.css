@@ -1,0 +1,227 @@
+/* Frequency Table Select Modal Styles */
+
+.freq-table-select-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.freq-table-select-modal {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease-in-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.freq-table-select-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.freq-table-select-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.freq-table-select-modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: color 0.2s;
+}
+
+.freq-table-select-modal-close:hover:not(:disabled) {
+  color: #333;
+}
+
+.freq-table-select-modal-close:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.freq-table-select-modal-content {
+  flex: 1;
+  padding: 16px 20px;
+  overflow-y: auto;
+}
+
+.freq-table-select-all-section {
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: #f5f5f5;
+  border-radius: 6px;
+}
+
+.freq-table-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.freq-table-checkbox-wrapper input[type="checkbox"] {
+  margin-right: 8px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.freq-table-checkbox-wrapper input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.freq-table-checkbox-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.freq-table-select-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.freq-table-select-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fafafa;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.freq-table-select-item:hover {
+  border-color: #b02a37;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(176, 42, 55, 0.1);
+}
+
+.freq-table-select-item input[type="checkbox"] {
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.freq-table-select-item input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.freq-table-select-item-label {
+  font-size: 13px;
+  color: #555;
+  font-weight: 500;
+}
+
+.freq-table-select-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #f9f9f9;
+}
+
+.freq-table-select-modal-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.freq-table-select-modal-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.freq-table-select-modal-btn-cancel {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.freq-table-select-modal-btn-cancel:hover:not(:disabled) {
+  background-color: #d0d0d0;
+}
+
+.freq-table-select-modal-btn-save {
+  background-color: #b02a37;
+  color: white;
+}
+
+.freq-table-select-modal-btn-save:hover:not(:disabled) {
+  background-color: #8b1f2a;
+  box-shadow: 0 2px 8px rgba(176, 42, 55, 0.3);
+}
+
+/* Scrollbar styling */
+.freq-table-select-modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.freq-table-select-modal-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.freq-table-select-modal-content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.freq-table-select-modal-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

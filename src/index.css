@@ -1,0 +1,29 @@
+@font-face {
+  font-family: Space_Mono;
+  src: url("./assets/Fonts/Space_Mono/SpaceMono-Regular.ttf");
+}
+
+@font-face {
+  font-family: Roboto;
+  src: url("./assets/Fonts/Roboto/Roboto-VariableFont_wdth\,wght.ttf");
+}
+
+@font-face {
+  font-family: Fira_Code;
+  src: url("./assets/Fonts/Fira_Code/static/FiraCode-Regular.ttf");
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}

@@ -1,0 +1,89 @@
+.confirm-dialog-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  backdrop-filter: blur(2px);
+}
+
+.confirm-dialog {
+  background: #ffffff;
+  padding: 2rem 1rem;
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  width: 320px;
+  max-width: 90%;
+  animation: slideIn 0.3s ease-out;
+  text-align: center;
+  position: relative;
+}
+
+.confirm-dialog::before {
+  content: "⚠️";
+  font-size: 2rem;
+  position: absolute;
+  top: 0;
+  transform: translate(-50%, -50%); 
+  background: white;
+  border-radius: 50%;
+  padding: 5px;
+  z-index: 10; 
+}
+
+.confirm-dialog p {
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.btn {
+  padding: 0.5rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: clamp(12px, 0.79vw, 16px);
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #e53935;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #d32f2f;
+}
+
+.btn-secondary {
+  background-color: #f2f2f2;
+  color: #555;
+}
+
+.btn-secondary:hover {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

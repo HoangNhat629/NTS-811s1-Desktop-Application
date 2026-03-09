@@ -1,0 +1,333 @@
+:root {
+  --primary-error: #ff6b6b;
+  --primary-error-dark: #ff5252;
+  --primary-error-light: #ffa8a8;
+  --accent-warning: #ffa940;
+  --text-primary-light: #1f2937;
+  --text-secondary-light: #6b7280;
+  --text-primary-dark: #f3f4f6;
+  --text-secondary-dark: #d1d5db;
+  --bg-light: #f8f9fa;
+  --bg-light-alt: #ffffff;
+  --bg-dark: #1e1e1e;
+  --bg-dark-alt: #2d2d2d;
+  --border-light: #e5e7eb;
+  --border-dark: #404040;
+}
+
+/* =========================
+   MAIN LAYOUT
+========================= */
+.not-found-wrapper {
+  height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.not-found-wrapper::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(255, 107, 107, 0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.not-found-wrapper::after {
+  content: "";
+  position: absolute;
+  bottom: -20%;
+  left: -5%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(79, 172, 254, 0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.not-found-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 20px;
+}
+
+.not-found-content {
+  max-width: 600px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+}
+
+/* =========================
+   ILLUSTRATION
+========================= */
+.error-illustration {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.error-svg {
+  animation: float-smooth 4s ease-in-out infinite;
+  filter: drop-shadow(0 10px 30px rgba(255, 107, 107, 0.18));
+}
+
+.outer-ring {
+  fill: none;
+  stroke: var(--primary-error);
+  stroke-width: 2;
+  opacity: 0.3;
+}
+
+.error-icon {
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+.triangle {
+  fill: var(--primary-error);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.exclamation-line {
+  stroke: white;
+  stroke-width: 3;
+  stroke-linecap: round;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.exclamation-dot {
+  fill: white;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.pulse-ring {
+  fill: none;
+  stroke: var(--primary-error);
+  stroke-width: 1.5;
+  opacity: 0.4;
+}
+
+.pulse-1 {
+  animation: pulse-out 2s ease-out infinite;
+}
+
+.pulse-2 {
+  animation: pulse-out 2s ease-out 0.5s infinite;
+}
+
+/* =========================
+   TEXT SECTION
+========================= */
+.text-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.error-title {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.error-description {
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+  opacity: 0.8;
+}
+
+/* =========================
+   ERROR DETAILS
+========================= */
+.error-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--bg-light-alt);
+  border: 1px solid var(--border-light);
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.detail-icon {
+  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* =========================
+   ERROR CODE BADGE
+========================= */
+.error-code-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.15) 0%, rgba(255, 107, 107, 0.08) 100%);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #ff8a8a;
+  font-family: 'Space Mono', monospace;
+}
+
+/* =========================
+   DARK MODE
+========================= */
+[data-theme="light"] .not-found-wrapper {
+  background: var(--bg-light);
+  color: var(--text-primary-light);
+}
+
+[data-theme="light"] .error-title {
+  color: var(--text-primary-light);
+}
+
+[data-theme="light"] .error-description {
+  color: var(--text-secondary-light);
+}
+
+[data-theme="light"] .error-details {
+  background: var(--bg-light-alt);
+  border: 1px solid var(--border-light);
+}
+
+[data-theme="light"] .detail-item {
+  color: var(--text-primary-light);
+}
+
+[data-theme="dark"] .not-found-wrapper {
+  background: var(--bg-dark);
+  color: var(--text-primary-dark);
+}
+
+[data-theme="dark"] .error-title {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .error-description {
+  color: var(--text-secondary-dark);
+}
+
+[data-theme="dark"] .error-details {
+  background: var(--bg-dark-alt);
+  border: 1px solid var(--border-dark);
+}
+
+[data-theme="dark"] .detail-item {
+  color: var(--text-secondary-dark);
+}
+
+/* =========================
+   ANIMATIONS
+========================= */
+@keyframes float-smooth {
+  0%,
+  100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.02);
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-1deg);
+  }
+  75% {
+    transform: rotate(1deg);
+  }
+}
+
+@keyframes pulse-out {
+  0% {
+    r: 80px;
+    opacity: 0.6;
+  }
+  100% {
+    r: 100px;
+    opacity: 0;
+  }
+}
+
+/* =========================
+   RESPONSIVE DESIGN
+========================= */
+@media (max-width: 768px) {
+  .not-found-content {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .error-svg {
+    width: 150px !important;
+    height: 150px !important;
+  }
+
+  .error-title {
+    font-size: 24px;
+  }
+
+  .error-description {
+    font-size: 14px;
+  }
+
+  .error-details {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .detail-item {
+    font-size: 13px;
+  }
+
+  .not-found-wrapper::before,
+  .not-found-wrapper::after {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .not-found-container {
+    padding: 10px;
+  }
+
+  .error-title {
+    font-size: 20px;
+  }
+
+  .error-description {
+    font-size: 13px;
+  }
+
+  .error-details {
+    padding: 10px;
+    gap: 8px;
+  }
+}

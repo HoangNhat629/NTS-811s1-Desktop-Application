@@ -1,0 +1,80 @@
+[data-theme="dark"] {
+  --second-background-color: #121212;
+  --background-image: url("../Images/pattern.svg");
+  --scrollbar-color: rgba(229, 9, 20, 0.8) #141414;
+}
+
+[data-theme="light"] {
+  --second-background-color: #ffffff;
+  --background-image: url("../Images/bgvt.png");
+  --scrollbar-color: rgba(229, 9, 20, 0.8) #fff;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Roboto;
+  user-select: none;
+}
+
+.no-scroll-bar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scroll-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.main-content-page {
+  background-color: var(--second-background-color);
+  background-image: var(--background-image);
+  background-repeat: repeat-x;
+  overflow-y: hidden;
+  transition: all 0.3s ease;
+}
+
+.custom-checkbox {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  appearance: none;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.custom-checkbox:checked {
+  background-color: red;
+  border-color: red;
+}
+
+.custom-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.custom-scroll {
+  overflow: hidden scroll;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-color);
+}
+
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  color: #121212;
+  opacity: 0.5;
+}

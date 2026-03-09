@@ -1,0 +1,86 @@
+.login-page {
+  background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)),
+              url('../../assets/Images/viettel_background.jpg') no-repeat center center / cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-form {
+  width: 400px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(30px);
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  color: #fff;
+  transition: transform 0.3s ease;
+}
+
+.login-form:hover {
+  transform: scale(1.02);
+}
+
+.login-form h1 {
+  font-size: 32px;
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 30px;
+  letter-spacing: 1px;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.input-box {
+  position: relative;
+  margin-bottom: 25px;
+}
+
+.input-box input {
+  width: 100%;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 30px;
+  padding: 0 45px 0 20px;
+  font-size: 16px;
+  color: #fff;
+  outline: none;
+  box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.2);
+}
+
+.input-box input::placeholder {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.input-box svg {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.login-page .btn {
+  width: 100%;
+  height: 45px;
+  background: linear-gradient(135deg, #ee0034, #ff4b5c);
+  border: none;
+  border-radius: 30px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(238, 0, 52, 0.4);
+}
+
+.login-page .btn:hover {
+  background: linear-gradient(135deg, #ff4b5c, #ee0034);
+  box-shadow: 0 6px 18px rgba(238, 0, 52, 0.6);
+  transform: translateY(-2px);
+}

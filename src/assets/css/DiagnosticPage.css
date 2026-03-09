@@ -1,0 +1,220 @@
+[data-theme="dark"] {
+  --diagnostic-page-background-color: #1e1e1e;
+  --dev-action-button-border-color: 2px solid rgba(229, 9, 20, 0.6);
+}
+
+[data-theme="light"] {
+  --diagnostic-page-background-color: #f8f9fa;
+  --dev-action-button-border-color: 2px solid #e60012;
+}
+
+.diagnostic-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: var(--diagnostic-page-background-color);
+  font-family: Roboto;
+  color: #333;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.cmd-line {
+  border: 1px solid #36454f;
+  color: #36454f;
+  font-size: 14px;
+  padding: 8px;
+  margin-top: 1rem;
+  border-radius: 4px;
+  background-color: #e9f4ff;
+  font-style: normal;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  display: block;
+  box-sizing: border-box;
+  height: 50px;
+  line-height: 1.4;
+}
+
+#ucos_console {
+  width: 100%;
+  background-color: #1e1f29;
+  color: #f8f8f2;
+  font-family: Fira_Code;
+  font-size: 14px;
+  border: none;
+  padding: 1rem;
+  border-radius: 10px;
+  resize: none;
+  outline: none;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+#ucos_cmdinput {
+  background-color: #282a36;
+  color: #f8f8f2;
+  font-family: Fira_Code;
+  font-size: 14px;
+  border: none;
+  padding: 0.75rem 1rem;
+  margin-top: 0.25rem;
+  border-radius: 8px;
+  outline: none;
+  box-shadow: inset 0 0 5px #00000066;
+  width: 100%;
+}
+
+#ucos_cmdinput::placeholder {
+  color: #6272a4;
+  font-style: italic;
+}
+
+#ucos_console::placeholder {
+  color: #555;
+  font-style: italic;
+}
+
+#ucos_cmdinput:focus {
+  border-color: #ff79c6;
+  caret-color: #ff79c6;
+  box-shadow: 0 0 0 2px rgba(255, 121, 198, 0.3);
+}
+
+.cmd-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.cmd-suggestions {
+  position: absolute;
+  bottom: 50%;
+  margin-bottom: 8px;
+  background-color: #1e1f29;
+  color: #f8f8f2;
+  padding: 4px;
+  border-radius: 8px;
+  font-family: Fira_Code;
+  font-size: 13px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  z-index: 20;
+  width: 100%;
+  max-width: 100%;
+  list-style: none;
+  border: none;
+  transition: all 0.2s ease;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.cmd-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  border-radius: 6px;
+  color: #e5e5e5;
+  background-color: #0d0d0d;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cmd-item:hover,
+.cmd-item.selected {
+  background-color: #44475a;
+  color: #50fa7b;
+  font-weight: bold;
+}
+
+#system-diag-modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+#ucos_console.console-display {
+  width: 100%;
+  background-color: #282a36;
+  color: #f8f8f2;
+  font-family: Fira_Code, monospace;
+  font-size: 13px;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  box-shadow: inset 0 0 5px #00000066;
+}
+
+.system-diag-modal-content {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+.waiting_icon {
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #858585;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 2s linear infinite;
+  margin: auto;
+}
+
+.dev-action-button {
+  background-color: #f40612;
+  color: #e5e5e5;
+  border: var(--dev-action-button-border-color);
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 15px;
+  transition: all 0.3s ease;
+  display: inline-block;
+  margin: 0.5rem 0;
+  text-align: center;
+  outline: none;
+  align-items: center;
+  display: flex;
+}
+
+.dev-action-button:hover,
+.cryptographic-btn:hover {
+  background-color: rgba(229, 9, 20, 0.6);
+  color: #fff;
+  border-color: #e60012;
+}
+
+.dev-action-button:focus,
+.cryptographic-btn:focus {
+  box-shadow: 0 0 0 2px rgba(230, 0, 18, 0.3);
+}
+
+.dev-action-button:disabled,
+.cryptographic-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
