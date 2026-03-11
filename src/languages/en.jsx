@@ -1,5 +1,7 @@
 export const enVersion = {
   close: "Close",
+  connect_device: "Connect Device",
+  back_to_connection: "Back to Connection",
   allSessions: "All Sessions",
   invalidHost:
     "Invalid Host - must be a valid domain, IPv4 address, or 'localhost'",

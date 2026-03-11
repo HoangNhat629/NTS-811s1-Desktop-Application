@@ -15,12 +15,14 @@ import { PageNotFound } from "./PageNotFound";
 import { useOutletDisable } from "../../context/OutletDisableContext";
 import axios from "axios";
 import { electronAPI } from "../../tauri-shim";
+import { useConnectionStatus } from "../../hooks/useConnectionStatus";
 
 const SettingPageInner = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { disableOutlets, enableOutlets } = useOutletDisable();
+  const { connected } = useConnectionStatus();
   const [serverOK, setServerOK] = useState(null);
   const clickCountRef = useRef(0);
   const clickTimerRef = useRef(null);
@@ -39,7 +41,7 @@ const SettingPageInner = () => {
   };
 
   const checkHealth = async () => {
-    if (new URL(baseURL).hostname === "0.0.0.0") {
+    if (!connected) {
       enableOutlets();
       return true;
     }

@@ -8,7 +8,7 @@ export default function AllSessionsModal({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="connection-modal-backdrop">
+    <div className="connection-modal-backdrop custom-scroll">
       <div className="connection-modal">
         <h3>{t("allSessions")}</h3>
         <div style={{ maxHeight: 400, overflowY: "auto" }}>

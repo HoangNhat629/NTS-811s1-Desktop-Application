@@ -11,14 +11,15 @@
 }
 
 [data-theme="light"] {
-  --bg-color: #141414;
-  --hoursBx-color: #fbc02d;
-  --minuBx-color: #b3b3b3;
-  --secBx-color: #e50914;
-  --ap-color: #fff;
-  --clock-shadow: inset 8px 8px 16px rgba(0, 0, 0, 0.9),
-    inset -8px -8px 16px rgba(60, 60, 60, 0.3), 0px 8px 20px rgba(0, 0, 0, 0.9);
-  --circle--filter: drop-shadow(2px 2px 6px rgba(0, 0, 0, 0.8))
+  --bg-color: #fff;
+  --hoursBx-color: #e67e22;
+  --minuBx-color: #9e9e9e;
+  --secBx-color: #ee0034;
+  --ap-color: #000;
+  --clock-shadow: inset 8px 8px 16px rgba(0, 0, 0, 0.15),
+    inset -8px -8px 16px rgba(225, 225, 225, 0.9),
+    0px 8px 20px rgba(0, 0, 0, 0.1);
+  --circle--filter: drop-shadow(2px 2px 6px rgba(255, 255, 255, 0.8))
     drop-shadow(-2px -2px 6px rgba(225, 225, 225, 0.1));
 }
 

@@ -8,7 +8,10 @@ const ipcRenderer = {
     if (channel === "ping:start") {
       return invoke("start_ping", { host: data.host, port: Number(data.port) });
     } else if (channel === "ping:stop") {
-      return invoke("stop_ping", { host: data.host || "", port: Number(data.port) || 0 });
+      return invoke("stop_ping", {
+        host: data.host || "",
+        port: Number(data.port) || 0,
+      });
     }
     return invoke(channel, data);
   },
@@ -56,4 +59,3 @@ const electronAPI = {
 };
 
 export { electronAPI };
-

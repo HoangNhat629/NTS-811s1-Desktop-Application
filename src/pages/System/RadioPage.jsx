@@ -1054,7 +1054,7 @@ export const RadioPage = () => {
                       <tr>
                         <td
                           colSpan="12"
-                          className="text-center text-muted py-4"
+                          className="text-center py-4"
                         >
                           {filteredChannels.length === 0 && searchChannel
                             ? t("no_matching_channels_found")

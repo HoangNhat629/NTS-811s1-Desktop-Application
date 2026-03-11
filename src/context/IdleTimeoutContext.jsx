@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useRef, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
 import { useNavigate } from "react-router-dom";
 
 const IdleTimeoutContext = createContext();
@@ -8,7 +14,7 @@ export const IdleTimeoutProvider = ({ children }) => {
   const timeoutRef = useRef(null);
   const lastActivityRef = useRef(Date.now());
 
-  const IDLE_TIMEOUT = 30 * 1000; // 30 seconds
+  const IDLE_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
   const resetTimer = useCallback(() => {
     lastActivityRef.current = Date.now();
@@ -18,13 +24,11 @@ export const IdleTimeoutProvider = ({ children }) => {
     }
 
     timeoutRef.current = setTimeout(() => {
-      // Auto logout
       console.log("Idle timeout reached, logging out...");
-      localStorage.removeItem("token_access");
-      localStorage.removeItem("activeHost");
-      localStorage.removeItem("recentSessions");
-      localStorage.removeItem("apiBase");
-      localStorage.clear();
+
+      const keys = ["outletDisableState", "token_access", "apiBase"];
+      keys.forEach(localStorage.removeItem.bind(localStorage));
+
       navigate("/", { replace: true });
     }, IDLE_TIMEOUT);
   }, [navigate]);
@@ -34,7 +38,6 @@ export const IdleTimeoutProvider = ({ children }) => {
   }, [resetTimer]);
 
   useEffect(() => {
-    // Only setup idle timeout if user is logged in
     const token = localStorage.getItem("token_access");
     if (!token) return;
 
@@ -48,10 +51,10 @@ export const IdleTimeoutProvider = ({ children }) => {
       "click",
       "input",
       "keydown",
-      "keyup"
+      "keyup",
     ];
 
-    events.forEach(event => {
+    events.forEach((event) => {
       document.addEventListener(event, handleActivity, true);
     });
 
@@ -63,7 +66,7 @@ export const IdleTimeoutProvider = ({ children }) => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
-      events.forEach(event => {
+      events.forEach((event) => {
         document.removeEventListener(event, handleActivity, true);
       });
     };

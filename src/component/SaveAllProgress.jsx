@@ -1,3 +1,9 @@
+import {
+  MdCancel,
+  MdCheckCircle,
+  MdMoreHoriz,
+  MdRemoveCircleOutline,
+} from "react-icons/md";
 import { useSaveAllProgress } from "../context/SaveAllProgressContext";
 
 export const SaveAllProgress = () => {
@@ -32,9 +38,7 @@ export const SaveAllProgress = () => {
             className={`save-all-progress-item save-all-progress-item-${item.status}`}
           >
             <div className="save-all-progress-item-left">
-              <span className="save-all-progress-item-label">
-                {item.label}
-              </span>
+              <span className="save-all-progress-item-label">{item.label}</span>
               {item.error && (
                 <span className="save-all-progress-item-error">
                   {item.error}
@@ -43,14 +47,27 @@ export const SaveAllProgress = () => {
             </div>
             <div className="save-all-progress-item-icon">
               {item.status === "pending" && (
-                <span className="spinner-dots">⋯</span>
+                <span className="spinner-dots">
+                  <MdMoreHoriz />
+                </span>
               )}
               {item.status === "processing" && (
                 <span className="spinner-pulse">◌</span>
               )}
-              {item.status === "done" && <span className="icon-check">✓</span>}
+              {item.status === "done" && (
+                <span className="icon-check">
+                  <MdCheckCircle />
+                </span>
+              )}
               {item.status === "failed" && (
-                <span className="icon-cross">✕</span>
+                <span className="icon-cross">
+                  <MdCancel />
+                </span>
+              )}
+              {item.status === "skipped" && (
+                <span className="icon-skip">
+                  <MdRemoveCircleOutline />
+                </span>
               )}
             </div>
           </div>

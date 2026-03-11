@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { electronAPI } from "../tauri-shim";
+import { useNavigate } from "react-router-dom";
 
 const SessionTimeoutContext = createContext();
 
@@ -14,16 +15,12 @@ export const SessionTimeoutProvider = ({ children, onSessionExpired }) => {
         if (closeTime) {
           const now = Date.now();
           const timeSinceClose = now - closeTime;
-          const SESSION_TIMEOUT = 5 * 1000; // 5 seconds
+          const SESSION_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 
           if (timeSinceClose > SESSION_TIMEOUT) {
             // Session expired, clear everything
-            console.log("Session expired due to app close timeout");
-            localStorage.removeItem("token_access");
-            localStorage.removeItem("activeHost");
-            localStorage.removeItem("recentSessions");
-            localStorage.removeItem("apiBase");
-            localStorage.clear();
+            const keys = ["outletDisableState", "token_access", "apiBase"];
+            keys.forEach(localStorage.removeItem.bind(localStorage));
 
             // Clear the close time
             await electronAPI.clearSessionCloseTime();
@@ -69,7 +66,9 @@ export const SessionTimeoutProvider = ({ children, onSessionExpired }) => {
 export const useSessionTimeout = () => {
   const context = useContext(SessionTimeoutContext);
   if (!context) {
-    throw new Error("useSessionTimeout must be used within SessionTimeoutProvider");
+    throw new Error(
+      "useSessionTimeout must be used within SessionTimeoutProvider"
+    );
   }
   return context;
 };

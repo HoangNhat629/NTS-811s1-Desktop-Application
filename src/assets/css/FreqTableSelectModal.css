@@ -199,12 +199,12 @@
 }
 
 .freq-table-select-modal-btn-save {
-  background-color: #b02a37;
+  background-color: #f40612;
   color: white;
 }
 
 .freq-table-select-modal-btn-save:hover:not(:disabled) {
-  background-color: #8b1f2a;
+  background-color: #b02a37;
   box-shadow: 0 2px 8px rgba(176, 42, 55, 0.3);
 }
 

@@ -11,9 +11,9 @@ import { CryptoTable } from "./pages/System/CryptoTable";
 import ConnectionPage from "./pages/Connection/ConnectionPage";
 import { PageNotFound } from "./pages/System/PageNotFound";
 import { OutletDisableProvider } from "./context/OutletDisableContext";
-import { SessionTimeoutWrapper } from "./context/SessionTimeoutWrapper";
-import { IdleTimeoutProvider } from "./context/IdleTimeoutContext";
 import { useEffect } from "react";
+import { IdleTimeoutProvider } from "./context/IdleTimeoutContext";
+import { SessionTimeoutWrapper } from "./context/SessionTimeoutWrapper";
 
 function App() {
   useEffect(() => {

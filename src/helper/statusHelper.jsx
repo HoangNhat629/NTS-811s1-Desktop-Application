@@ -71,3 +71,36 @@ export const printUpTimeBySecHelper = (uptime, space, days) => {
     upSecs.toFixed(0).toString().padStart(2, "0");
   return retStr;
 };
+
+export const buildSaveResult = (summary, label = "Item") => {
+  const { success, failed, skipped } = summary;
+
+  let status = "success";
+
+  if (failed.length) status = "failed";
+  else if (skipped.length) status = "skipped";
+
+  const lines = [];
+
+  if (success.length) {
+    lines.push(`${success.length} ${label}(s) saved`);
+  }
+
+  if (skipped.length) {
+    skipped.forEach((s) =>
+      lines.push(`${label} ${s.id}: (${s.reason})`)
+    );
+  }
+
+  if (failed.length) {
+    failed.forEach((f) =>
+      lines.push(`${label} ${f.id}: (${f.reason})`)
+    );
+  }
+
+  return {
+    status,
+    message: lines.join("\n"),
+    details: summary,
+  };
+};

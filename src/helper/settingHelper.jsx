@@ -577,15 +577,15 @@ export const buildSaveSummaryMessageHelper = (summary, t) => {
   const lines = [];
 
   lines.push(
-    `${t("Freq Tables Saved")}: ${
-      summary.success.length ? summary.success.join(", ") : "-"
+    `${t("Freq Tables Result")}: ${
+      summary.success.length ? summary.success.join(", ") : ""
     }`
   );
 
   if (summary.failed.length) {
     lines.push(
       `${t("Failed")}: ${summary.failed
-        .map((f) => `${f.tblId}${f.reason ? ` (${f.reason})` : ""}`)
+        .map((f) => `${f.id}${f.reason ? ` (${f.reason})` : ""}`)
         .join(", ")}`
     );
   }
@@ -593,7 +593,7 @@ export const buildSaveSummaryMessageHelper = (summary, t) => {
   if (summary.skipped.length) {
     lines.push(
       `${t("Skipped")}: ${summary.skipped
-        .map((s) => `${s.tblId}${s.reason ? ` (${s.reason})` : ""}`)
+        .map((s) => `${s.id}${s.reason ? ` (${s.reason})` : ""}`)
         .join(", ")}`
     );
   }

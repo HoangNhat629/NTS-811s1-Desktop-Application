@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { setBaseURL } from "../../utils/axiosConfig";
-import NewSessionModal from "../../component/NewSessionModal";
+import { NewSessionModal } from "../../component/NewSessionModal";
 import AllSessionsModal from "../../component/AllSessionsModal";
 import Viettel_logo from "../../assets/Images/viettel_logo_1.png";
 import { CustomOclock } from "../../component/CustomOclock";
@@ -251,6 +251,7 @@ export default function WelcomePage() {
       state: { host, port },
     });
   };
+  
   return (
     <div className="connection-root">
       <div className="connection-column">

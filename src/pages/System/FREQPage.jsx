@@ -35,6 +35,7 @@ import {
   TOAST_WARNING_ID,
 } from "../../constants/toastId";
 import ConfirmDialog from "../../component/ConfirmDialog";
+import { buildSaveResult } from "../../helper/statusHelper";
 
 export const FREQPage = () => {
   const dispatch = useDispatch();
@@ -668,6 +669,7 @@ export const FREQPage = () => {
   const handleSaveSelectedTables = useCallback(
     async (selectedTableIds) => {
       console.log("Saving selected tables:", selectedTableIds);
+
       const tables = cacheRef.current;
 
       if (!tables || !selectedTableIds?.length) {
@@ -683,63 +685,79 @@ export const FREQPage = () => {
         skipped: [],
       };
 
+      const skip = (tblId, reason) =>
+        summary.skipped.push({ id: tblId, reason });
+
+      const fail = (tblId, err) =>
+        summary.failed.push({
+          id: tblId,
+          reason: err?.message || "Save failed",
+        });
+
+      const success = (tblId) => summary.success.push(tblId);
+
+      const isValidTable = (table) =>
+        table && Array.isArray(table.data) && table.data.length > 0;
+
+      const buildPayload = (tblId, table) => {
+        const { data, freq_min, freq_max, step_min, cfg_freq, isGenerated } =
+          table;
+
+        const freqStart = normalizeFrequencyHelper(data[0]);
+
+        const isFreqValid =
+          typeof cfg_freq === "number" &&
+          cfg_freq >= freq_min &&
+          cfg_freq <= freq_max;
+
+        return {
+          tbl_id: Number(tblId),
+          freq_start: freqStart,
+          freq_step: isGenerated && isFreqValid ? cfgStep : step_min,
+          num_freqs: data.length,
+          freqs: data.map(normalizeFrequencyHelper),
+        };
+      };
+
+      const saveOneTable = async (tblId, table) => {
+        try {
+          const payload = buildPayload(tblId, table);
+          await dispatch(setHopTableFunc(payload)).unwrap();
+          success(tblId);
+        } catch (err) {
+          fail(tblId, err);
+        }
+      };
+
       try {
         for (const tblId of selectedTableIds) {
           const table = tables[tblId];
 
           if (!table) {
-            summary.skipped.push({ tblId, reason: "Table not found" });
+            skip(tblId, "Table not found");
             continue;
           }
 
-          const { data, freq_min, freq_max, step_min, cfg_freq, isGenerated } =
-            table;
-
-          if (!Array.isArray(data) || data.length === 0) {
-            summary.skipped.push({ tblId, reason: "No data" });
+          if (!isValidTable(table)) {
+            skip(tblId, "No data");
             continue;
           }
 
-          try {
-            const freqStart = normalizeFrequencyHelper(data[0]);
-
-            const isFreqValid =
-              typeof cfg_freq === "number" &&
-              cfg_freq >= freq_min &&
-              cfg_freq <= freq_max;
-
-            const payload = {
-              tbl_id: Number(tblId),
-              freq_start: freqStart,
-              freq_step: isGenerated && isFreqValid ? cfgStep : step_min,
-              num_freqs: data.length,
-              freqs: data.map(normalizeFrequencyHelper),
-            };
-
-            await dispatch(setHopTableFunc(payload)).unwrap();
-
-            summary.success.push(tblId);
-          } catch (err) {
-            summary.failed.push({
-              tblId,
-              reason: err?.message || "Save failed",
-            });
-          }
-
+          await saveOneTable(tblId, table);
           await sleep(200);
         }
 
         toast.dismiss();
 
         const message = buildSaveSummaryMessageHelper(summary, t);
-        console.log(summary);
-        if (summary.failed.length > 0) {
+
+        if (summary.failed.length) {
           toast.error(message, {
             style: { whiteSpace: "pre-line" },
             toastId: TOAST_ERROR_ID,
           });
-        } else if (summary.skipped.length > 0) {
-          toast.warn(message, {
+        } else if (summary.skipped.length) {
+          toast.warning(message, {
             style: { whiteSpace: "pre-line" },
             toastId: TOAST_WARNING_ID,
           });
@@ -748,23 +766,25 @@ export const FREQPage = () => {
             style: { whiteSpace: "pre-line" },
             toastId: TOAST_SUCCESS_ID,
           });
+
           setConfirmDialog({
             show: true,
             message: "All selected tables have been saved successfully.",
-            onConfirm: async () => {
-              setConfirmDialog({ show: false });
-            },
+            onConfirm: () => setConfirmDialog({ show: false }),
             showCancel: false,
           });
         }
       } catch (err) {
         console.error("Save selected tables crashed:", err);
-        toast.error(t("failedSaveAllTables"), {
+
+        toast.error(t("Failed to save all tables"), {
           toastId: TOAST_ERROR_ID,
         });
       } finally {
         setIsSavingAllTables(false);
       }
+
+      return buildSaveResult(summary, "Table");
     },
     [dispatch, t]
   );

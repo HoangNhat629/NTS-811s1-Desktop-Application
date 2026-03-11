@@ -1,5 +1,12 @@
-import { createContext, useContext, useState, useCallback, useMemo } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { sleep } from "../helper/settingHelper";
+import { toast } from "react-toastify";
 const SaveAllContext = createContext();
 
 const SAVE_DELAY_MS = 200;
@@ -52,41 +59,43 @@ export const SaveAllProvider = ({ children }) => {
         const [key, saveFunc] = entries[i];
 
         try {
-          if (onProgress) {
-            onProgress({
-              index: i,
-              status: "processing",
-            });
-          }
+          onProgress?.({
+            index: i,
+            status: "processing",
+          });
 
-          await saveFunc();
+          const result = await saveFunc();
+          toast.dismiss();
 
-          if (onProgress) {
-            onProgress({
-              index: i,
-              status: "done",
-            });
-          }
+          const status =
+            result?.status === "failed"
+              ? "failed"
+              : result?.status === "skipped"
+              ? "skipped"
+              : "done";
+
+          onProgress?.({
+            index: i,
+            status,
+            error: result?.message,
+          });
 
           results.push({
             key,
-            status: "success",
+            ...result,
           });
         } catch (err) {
-          console.error(`Save function ${key} failed:`, err);
+          console.error(`Save ${key} failed`, err);
 
-          if (onProgress) {
-            onProgress({
-              index: i,
-              status: "failed",
-              error: err?.message || String(err),
-            });
-          }
+          onProgress?.({
+            index: i,
+            status: "failed",
+            error: err?.message || String(err),
+          });
 
           results.push({
             key,
             status: "failed",
-            error: err?.message || String(err),
           });
         }
 

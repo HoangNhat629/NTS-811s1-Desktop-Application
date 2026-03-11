@@ -1,5 +1,7 @@
 export const viVersion = {
   close: "Đóng",
+  connect_device: "Kết nối thiết bị",
+  back_to_connection: "Quay lại kết nối",
   allSessions: "Tất cả các phiên",
   invalidHost:
     "Host không hợp lệ – phải là tên miền hợp lệ, địa chỉ IPv4 hoặc 'localhost'",
@@ -18,7 +20,8 @@ export const viVersion = {
   Export_Editing_File_Des:
     "Xuất dữ liệu đang chỉnh sửa dưới dạng JSON thuần (không mã hóa)",
   Export_Editing_File: "Xuất file đang chỉnh sửa (mặc định)",
-  Export_System_File_Des: "Xuất file mã hóa chứa dữ liệu từ thiết bị (Có mã hóa)",
+  Export_System_File_Des:
+    "Xuất file mã hóa chứa dữ liệu từ thiết bị (Có mã hóa)",
   Export_System_File: "Xuất File Hệ Thống",
   Select_export_mode: "Chọn chế độ xuất file dữ liệu",
   Export_Configuration: "Chế độ xuất file dữ liệu",

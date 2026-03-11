@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   MdCellTower,
@@ -10,6 +10,8 @@ import {
   MdSave,
   MdRestartAlt,
   MdPowerSettingsNew,
+  MdArrowBack,
+  MdLink,
 } from "react-icons/md";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
@@ -52,6 +54,8 @@ import {
   TOAST_SUCCESS_ID,
   TOAST_WARNING_ID,
 } from "../constants/toastId";
+import { useConnectionStatus } from "../hooks/useConnectionStatus";
+import { ConnectDeviceModal } from "./NewSessionModal";
 
 const SAVE_LABELS = {
   radio: "Radio Configuration",
@@ -69,7 +73,9 @@ export const Sidebar = () => {
   const { activateDefaultMode, defaultData } = useDefaultData();
   const { getEditingData } = useEditingExport();
   const { enableOutlets, isOutletDisabled } = useOutletDisable();
+  const { connected } = useConnectionStatus();
   const [outletDisabledState, setOutletDisabledState] = useState(true);
+  const [showConnectionPanel, setShowConnectionPanel] = useState(false);
 
   const MENU_ITEMS = [
     { id: "radio", icon: MdCellTower, label: "RADIO", path: "radio" },
@@ -273,17 +279,12 @@ export const Sidebar = () => {
 
   const handleExportEditingFile = async () => {
     const editingData = getEditingData();
-    console.log(editingData);
     const hasAnyData = Object.values(editingData).some((val) => val !== null);
 
     if (!hasAnyData) {
-      toast.error(
-        t("noEditingDataToExport") ||
-          "No editing data found. Load default mode first.",
-        {
-          toastId: TOAST_ERROR_ID,
-        }
-      );
+      toast.error("No editing data found. Load default mode first.", {
+        toastId: TOAST_ERROR_ID,
+      });
       throw new Error("No editing data available");
     }
 
@@ -409,7 +410,7 @@ export const Sidebar = () => {
           }
         );
       } else {
-        toast.error("failed_to_save_all_configurations", {
+        toast.error(t("failed_to_save_all_configurations"), {
           toastId: TOAST_ERROR_ID,
         });
       }
@@ -468,6 +469,10 @@ export const Sidebar = () => {
     });
   };
 
+  const handleDeviceConnect = () => {
+    console.log("Hello Finn");
+  };
+
   return (
     <>
       <ConfirmDialog
@@ -484,6 +489,12 @@ export const Sidebar = () => {
         isLoading={isExporting}
       />
       {isRebooting && <LoadingPage loadingProcess={rebootProgress} />}
+      {showConnectionPanel && (
+        <ConnectDeviceModal
+          onCancel={() => setShowConnectionPanel(false)}
+          onConnect={handleDeviceConnect}
+        />
+      )}
       <SaveAllProgress />
       <aside className="layout-side position-relative d-flex flex-column justify-content-between">
         <div className="layout-side-children">
@@ -567,14 +578,26 @@ export const Sidebar = () => {
 
         <div className="layout-side-children">
           <div className="system-backup-section">
-            <button
-              onClick={resetDeviceFunc}
-              className="system-backup-btn"
-              disabled={isLoading || isSavingAll}
-            >
-              <MdRestartAlt style={{ marginRight: "5px" }} size={20} />
-              {t("restart")}
-            </button>
+            {!connected ? (
+              <button
+                className="system-backup-btn"
+                disabled={isLoading || isSavingAll}
+                onClick={() => setShowConnectionPanel(true)}
+              >
+                <MdLink style={{ marginRight: "5px" }} size={20} />
+                {t("connect_device")}
+              </button>
+            ) : (
+              <button
+                onClick={resetDeviceFunc}
+                className="system-backup-btn"
+                disabled={isLoading || isSavingAll}
+              >
+                <MdRestartAlt style={{ marginRight: "5px" }} size={20} />
+                {t("restart")}
+              </button>
+            )}
+
             <button
               className="system-backup-btn"
               onClick={() => {
@@ -583,8 +606,20 @@ export const Sidebar = () => {
               }}
               disabled={isLoading || isSavingAll}
             >
-              <MdPowerSettingsNew style={{ marginRight: "5px" }} size={20} />
-              {t("shutdown")}
+              {!connected ? (
+                <>
+                  <MdArrowBack style={{ marginRight: "5px" }} size={20} />
+                  {t("back_to_connection")}
+                </>
+              ) : (
+                <>
+                  <MdPowerSettingsNew
+                    style={{ marginRight: "5px" }}
+                    size={20}
+                  />
+                  {t("shutdown")}
+                </>
+              )}
             </button>
           </div>
         </div>

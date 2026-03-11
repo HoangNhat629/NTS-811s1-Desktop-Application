@@ -7,7 +7,7 @@ export const SaveAllProgressProvider = ({ children }) => {
   const [progress, setProgress] = useState({
     current: 0,
     total: 0,
-    items: [], // { key, label, status: 'pending' | 'processing' | 'done' | 'failed', error }
+    items: [], // { key, label, status: 'pending' | 'processing' | 'done' | 'failed' | 'skipped', error }
     percentage: 0,
   });
 
@@ -27,18 +27,26 @@ export const SaveAllProgressProvider = ({ children }) => {
   const updateItemStatus = useCallback((index, status, error = null) => {
     setProgress((prev) => {
       const newItems = [...prev.items];
-      
+
       if (index < 0 || index >= newItems.length) {
         console.warn(`updateItemStatus called with invalid index ${index}`);
         return prev;
       }
+
       newItems[index] = {
         ...newItems[index],
         status,
         error,
       };
 
-      const completed = newItems.filter((item) => item.status === "done" || item.status === "failed").length;
+      // const completed = newItems.filter(
+      //   (item) => item.status === "done" || item.status === "failed"
+      // ).length;
+
+      const completed = newItems.filter((item) =>
+        ["done", "failed", "skipped"].includes(item.status)
+      ).length;
+
       const percentage = Math.round((completed / prev.total) * 100);
 
       return {
@@ -95,7 +103,9 @@ export const SaveAllProgressProvider = ({ children }) => {
 export const useSaveAllProgress = () => {
   const context = useContext(SaveAllProgressContext);
   if (!context) {
-    throw new Error("useSaveAllProgress must be used within SaveAllProgressProvider");
+    throw new Error(
+      "useSaveAllProgress must be used within SaveAllProgressProvider"
+    );
   }
   return context;
 };

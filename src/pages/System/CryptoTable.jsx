@@ -19,12 +19,9 @@ import { useEditingExport } from "../../context/EditingExportContext";
 import { useSaveAll } from "../../context/SaveAllContext";
 import { useOutletDisable } from "../../context/OutletDisableContext";
 import { HideComponent } from "../../component/HideComponent";
-import {
-  TOAST_ERROR_ID,
-  TOAST_SUCCESS_ID,
-  TOAST_WARNING_ID,
-} from "../../constants/toastId";
+import { TOAST_ERROR_ID, TOAST_SUCCESS_ID } from "../../constants/toastId";
 import ConfirmDialog from "../../component/ConfirmDialog";
+import { buildSaveResult } from "../../helper/statusHelper";
 
 // Constants
 const ENC_TYPE_MAP = {
@@ -160,7 +157,11 @@ export const CryptoTable = () => {
     const cryptoTableData = {};
     Object.keys(ENC_TYPE_MAP).forEach((keyType) => {
       const cachedData = cacheRef.current[keyType];
-      if (cachedData && Array.isArray(cachedData.data) && cachedData.data.length > 0) {
+      if (
+        cachedData &&
+        Array.isArray(cachedData.data) &&
+        cachedData.data.length > 0
+      ) {
         cryptoTableData[keyType] = cachedData.data.map((table) =>
           Array.isArray(table)
             ? table.map((row) => ({
@@ -227,15 +228,7 @@ export const CryptoTable = () => {
     toast.success(t("Generate key success"), {
       toastId: TOAST_SUCCESS_ID,
     });
-  }, [
-    selectedKeyType,
-    genMode,
-    fixedKey,
-    genRangeType,
-    rangeFrom,
-    rangeTo,
-    t,
-  ]);
+  }, [selectedKeyType, genMode, fixedKey, genRangeType, rangeFrom, rangeTo, t]);
 
   const handleReload = async () => {
     delete cacheRef.current[selectedKeyType];
@@ -322,7 +315,10 @@ export const CryptoTable = () => {
             !Array.isArray(cachedData.data) ||
             cachedData.data.length === 0
           ) {
-            summary.skipped.push(keyType);
+            summary.skipped.push({
+              id: keyType,
+              reason: "No data",
+            });
             continue;
           }
 
@@ -338,29 +334,12 @@ export const CryptoTable = () => {
         } catch (err) {
           console.error(`Failed to save ${keyType}:`, err);
           summary.failed.push({
-            keyType,
+            id: keyType,
             reason: err?.message || String(err),
           });
         }
 
         await sleep(100);
-      }
-      if (summary.failed.length > 0) {
-        toast.warn(
-          `${t("Saved")} ${summary.success.length} ${t("crypto types")}, ${
-            summary.failed.length
-          } ${t("failed")}`,
-          {
-            toastId: TOAST_WARNING_ID,
-          }
-        );
-      } else {
-        toast.success(
-          `${t("Saved")} ${summary.success.length} ${t("crypto types")}`,
-          {
-            toastId: TOAST_SUCCESS_ID,
-          }
-        );
       }
     } catch (err) {
       console.error("Save all crypto crashed:", err);
@@ -370,6 +349,7 @@ export const CryptoTable = () => {
     } finally {
       setIsLoanding(false);
     }
+    return buildSaveResult(summary, "Table");
   }, [dispatch, t]);
 
   const renderSubCryptoTable = (tableIdx) => {
@@ -608,11 +588,15 @@ export const CryptoTable = () => {
                   >
                     <LoadingComponent />
                   </div>
-                ) : (
+                ) : currentCryptoTable.length > 0 ? (
                   <div className="crypt-table-container custom-scroll">
                     {currentCryptoTable.map((_, tableIdx) =>
                       renderSubCryptoTable(tableIdx)
                     )}
+                  </div>
+                ) : (
+                  <div className="alert alert-danger">
+                    {t("failedLoadTable")}
                   </div>
                 )}
               </div>

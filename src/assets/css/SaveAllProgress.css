@@ -1,6 +1,6 @@
 .save-all-progress-container {
   position: absolute;
-  top: 50px;
+  top: 15px;
   left: 0;
   right: 0;
   background: #f8f9fa;
@@ -64,7 +64,6 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-height: 120px;
   overflow-y: auto;
 }
 
@@ -99,6 +98,11 @@
   background-color: #f8d7da;
   color: #721c24;
   font-weight: 500;
+}
+
+.save-all-progress-item-skipped {
+  opacity: 0.7;
+  color: #6c757d;
 }
 
 .save-all-progress-item-left {
