@@ -12,9 +12,9 @@ import ConnectionPage from "./pages/Connection/ConnectionPage";
 import { PageNotFound } from "./pages/System/PageNotFound";
 import { OutletDisableProvider } from "./context/OutletDisableContext";
 import { useEffect } from "react";
+import { ThemeProvider } from "./context/ThemeContext";
 import { IdleTimeoutProvider } from "./context/IdleTimeoutContext";
 import { SessionTimeoutWrapper } from "./context/SessionTimeoutWrapper";
-
 function App() {
   useEffect(() => {
     if (!import.meta.env.DEV) {
@@ -34,9 +34,10 @@ function App() {
       };
     }
   }, []);
+
   return (
     <OutletDisableProvider>
-      <div id="app" data-theme="light">
+      <ThemeProvider>
         <Router>
           <SessionTimeoutWrapper>
             <Routes>
@@ -88,7 +89,7 @@ function App() {
             />
           </SessionTimeoutWrapper>
         </Router>
-      </div>
+      </ThemeProvider>
     </OutletDisableProvider>
   );
 }

@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { useTheme } from "../hooks/useTheme";
 import {
   MdPowerSettingsNew,
   MdLanguage,
@@ -22,9 +23,7 @@ const HeaderComponent = ({ title, icon, check_health }) => {
   const { hardwareStatus } = useSelector((state) => state.systemStatus);
 
   const [lang, setLang] = useState(sysLang);
-  const [theme, setTheme] = useState(
-    document.getElementById("app")?.getAttribute("data-theme") || "light"
-  );
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     dispatch(getHardwareStatusFunc())
@@ -55,9 +54,6 @@ const HeaderComponent = ({ title, icon, check_health }) => {
     // eslint-disable-next-line
   }, []);
 
-  useEffect(() => {
-    document.getElementById("app").setAttribute("data-theme", theme);
-  }, [theme]);
 
   const toggleChangeLang = () => {
     const newLang = lang === "en" ? "vn" : "en";
@@ -85,17 +81,15 @@ const HeaderComponent = ({ title, icon, check_health }) => {
                 }}
               />
             )}
-          <div style={{ cursor: "pointer" }}>
+          <div style={{ cursor: "pointer" }} onClick={toggleTheme}>
             {theme === "light" ? (
               <MdDarkMode
                 style={{ fontSize: "25px" }}
-                onClick={() => setTheme("dark")}
                 title={t("darkMode")}
               />
             ) : (
               <MdLightMode
                 style={{ fontSize: "25px" }}
-                onClick={() => setTheme("light")}
                 title={t("lightMode")}
               />
             )}

@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useTheme } from "../hooks/useTheme";
 import Calendar from "react-calendar";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -9,8 +10,7 @@ dayjs.extend(utc);
 dayjs.extend(timezonePlugin);
 
 export default function DateTimeComponent({ timestamp }) {
-  const theme =
-    document.getElementById("app")?.getAttribute("data-theme") || "dark";
+  const { theme } = useTheme();
 
   const localTz = "Asia/Ho_Chi_Minh";
 

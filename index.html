@@ -8,7 +8,32 @@
   </head>
 
   <body>
-    <div id="root"></div>
+    <!--
+      Pre-hydration theme script: read the last-used theme from localStorage
+      and apply it to the #app element before React mounts. This prevents a
+      flash of the wrong theme during first paint. The #app element exists
+      in markup below so we can reference it synchronously.
+    -->
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem("app_theme");
+          if (theme !== "dark") {
+            theme = "light";
+          }
+          var app = document.getElementById("app");
+          if (app) {
+            app.setAttribute("data-theme", theme);
+          }
+        } catch (e) {
+          // ignore; failures only cause flash
+        }
+      })();
+    </script>
+
+    <!-- React will mount directly into #app. We no longer use #root. -->
+    <div id="app"></div>
+
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
