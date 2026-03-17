@@ -5,6 +5,7 @@ import {
   MdLanguage,
   MdLightMode,
   MdDarkMode,
+  MdOutlineRadioButtonChecked,
 } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import BatteryComponent from "./BatteryComponent";
@@ -21,6 +22,8 @@ const HeaderComponent = ({ title, icon, check_health }) => {
   const sysLang = localStorage.getItem("sys_lang") || "en";
   const [currTime, setCurrTime] = useState(new Date().toLocaleTimeString());
   const { hardwareStatus } = useSelector((state) => state.systemStatus);
+  const [connectionStatus, setConnectionStatus] = useState("idle");
+  const [activeHostInfo, setActiveHostInfo] = useState(null);
 
   const [lang, setLang] = useState(sysLang);
   const { theme, toggleTheme } = useTheme();
@@ -54,12 +57,89 @@ const HeaderComponent = ({ title, icon, check_health }) => {
     // eslint-disable-next-line
   }, []);
 
+  useEffect(() => {
+    const update = () => {
+      const active = readActiveHost();
+
+      if (active) {
+        setConnectionStatus(active.status);
+        setActiveHostInfo(active);
+      } else {
+        setConnectionStatus("idle");
+        setActiveHostInfo(null);
+      }
+    };
+
+    update();
+
+    window.addEventListener("storage", update);
+
+    const interval = setInterval(update, 1000);
+
+    return () => {
+      window.removeEventListener("storage", update);
+      clearInterval(interval);
+    };
+  }, []);
 
   const toggleChangeLang = () => {
     const newLang = lang === "en" ? "vn" : "en";
     i18n.changeLanguage(newLang);
     setLang(newLang);
     localStorage.setItem("sys_lang", newLang);
+  };
+
+  const readActiveHost = () => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("activeHost") || "{}");
+
+      if (!stored.host) return null;
+
+      return {
+        host: stored.host,
+        port: stored.port,
+        status: stored.status || "idle",
+      };
+    } catch {
+      return null;
+    }
+  };
+
+  const ConnectionStatusIcon = ({ status }) => {
+    switch (status) {
+      case "online":
+        return (
+          <MdOutlineRadioButtonChecked
+            size={24}
+            color="#22c55e"
+            title="Connected"
+          />
+        );
+
+      case "offline":
+        return (
+          <MdOutlineRadioButtonChecked
+            size={24}
+            color="#ef4444"
+            title="Disconnected"
+          />
+        );
+
+      case "checking":
+        return (
+          <MdOutlineRadioButtonChecked
+            size={24}
+            color="#6b7280"
+            className="spin"
+            title="Connecting..."
+          />
+        );
+
+      default:
+        return (
+          <MdOutlineRadioButtonChecked size={24} color="#9ca3af" title="Idle" />
+        );
+    }
   };
 
   return (
@@ -71,6 +151,14 @@ const HeaderComponent = ({ title, icon, check_health }) => {
         </div>
         <div className="time">{currTime}</div>
         <div className="system-icons">
+          <div className="d-flex align-items-center gap-2 connection-info">
+            <ConnectionStatusIcon status={connectionStatus} />
+            <span className="connection-host">
+              {activeHostInfo
+                ? `${activeHostInfo.host}:${activeHostInfo.port}`
+                : t("no_connection")}
+            </span>
+          </div>
           {hardwareStatus?.GPS?.stat !== null &&
             hardwareStatus?.GPS?.num_satelite > 0 && (
               <MdGpsFixed
@@ -83,10 +171,7 @@ const HeaderComponent = ({ title, icon, check_health }) => {
             )}
           <div style={{ cursor: "pointer" }} onClick={toggleTheme}>
             {theme === "light" ? (
-              <MdDarkMode
-                style={{ fontSize: "25px" }}
-                title={t("darkMode")}
-              />
+              <MdDarkMode style={{ fontSize: "25px" }} title={t("darkMode")} />
             ) : (
               <MdLightMode
                 style={{ fontSize: "25px" }}

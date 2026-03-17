@@ -121,10 +121,6 @@ export default function WelcomePage() {
       return;
     }
 
-    if (activeSession) {
-      stopCurrentActive();
-    }
-
     const moved = [
       { ...session, status: "checking", online: undefined },
       ...sessions.filter(
@@ -141,7 +137,6 @@ export default function WelcomePage() {
     persistHelper(disabledOthers);
 
     setShowModal(false);
-    //Logout still retains the data of the hosts and fixes the ping time error.
     try {
       console.log("Calling ping:start for:", session.host, session.port);
       await electronAPI.ipcRenderer.send("ping:start", {
@@ -175,6 +170,23 @@ export default function WelcomePage() {
             console.log(
               `Updating session ${s.host}:${sPort} - online: ${data.online}`
             );
+
+            try {
+              const stored = JSON.parse(
+                localStorage.getItem("activeHost") || "{}"
+              );
+              
+              if (stored.host) {
+                localStorage.setItem(
+                  "activeHost",
+                  JSON.stringify({
+                    ...stored,
+                    status: data.online ? "online" : "offline",
+                  })
+                );
+              }
+            } catch {}
+
             return {
               ...s,
               online: data.online,
@@ -251,7 +263,7 @@ export default function WelcomePage() {
       state: { host, port },
     });
   };
-  
+
   return (
     <div className="connection-root">
       <div className="connection-column">

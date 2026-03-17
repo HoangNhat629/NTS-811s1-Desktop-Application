@@ -1,4 +1,5 @@
 export const enVersion = {
+  no_connection: "No Connection",
   close: "Close",
   connect_device: "Connect Device",
   back_to_connection: "Back to Connection",

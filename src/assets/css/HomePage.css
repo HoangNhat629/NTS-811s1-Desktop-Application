@@ -13,7 +13,7 @@
   --box-shadow-system-panel: 0 8px 24px rgba(0, 0, 0, 0.4);
   --color-system-panel-button-label: #f5f5f5;
   --background-color-button-hover: #3c3c3c;
-  --background-color-system-panel-button-active:#4c4c4c;
+  --background-color-system-panel-button-active: #4c4c4c;
   --color-button-svg: #fff;
 }
 
@@ -32,7 +32,7 @@
   --box-shadow-system-panel: 0 8px 24px rgba(0, 0, 0, 0.15);
   --color-system-panel-button-label: #333;
   --background-color-button-hover: #efefef;
-  --background-color-system-panel-button-active:rgba(0, 0, 0, 0.08);
+  --background-color-system-panel-button-active: rgba(0, 0, 0, 0.08);
   --color-button-svg: #000;
 }
 
@@ -144,6 +144,18 @@
 .time {
   font-size: 18px;
   font-weight: bold;
+}
+
+.connection-info {
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.connection-host {
+  font-family: monospace;
+  opacity: 0.85;
+  white-space: nowrap;
 }
 
 /* Main Content */

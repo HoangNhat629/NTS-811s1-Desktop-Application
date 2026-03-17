@@ -259,9 +259,7 @@
     padding: 24px;
     gap: 24px;
   }
-  .connection-column {
-    width: 100%;
-  }
+
   .connection-modal {
     width: calc(100% - 32px);
   }

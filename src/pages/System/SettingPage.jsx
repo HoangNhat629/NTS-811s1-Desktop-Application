@@ -196,8 +196,10 @@ function WrappedSettingPage(props) {
 
   useEffect(() => {
     const handler = handlePingStatus(navigate);
+    console.log("Registering ping:status listener");
     electronAPI.ipcRenderer.on("ping:status", handler);
     return () => {
+      console.log("Removing ping:status listener");
       electronAPI.ipcRenderer.removeListener("ping:status", handler);
     };
   }, [navigate]);

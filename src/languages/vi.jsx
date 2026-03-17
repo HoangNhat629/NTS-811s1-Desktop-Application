@@ -1,4 +1,5 @@
 export const viVersion = {
+  no_connection: "Không Kết Nối",
   close: "Đóng",
   connect_device: "Kết nối thiết bị",
   back_to_connection: "Quay lại kết nối",
