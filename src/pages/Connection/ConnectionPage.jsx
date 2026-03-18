@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import { useOutletDisable } from "../../context/OutletDisableContext";
 import { electronAPI } from "../../tauri-shim";
 
-export default function WelcomePage() {
+export default function ConnectionPage() {
   const [showModal, setShowModal] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [activeSession, setActiveSession] = useState(null);
@@ -106,7 +106,7 @@ export default function WelcomePage() {
 
   const handleConnect = async (session) => {
     const existing = sessions.find(
-      (s) => s.host === session.host && s.port === session.port
+      (s) => s.host === session.host && s.port === session.port,
     );
 
     if (existing && existing.status === "disabled") return;
@@ -124,13 +124,13 @@ export default function WelcomePage() {
     const moved = [
       { ...session, status: "checking", online: undefined },
       ...sessions.filter(
-        (s) => s.host !== session.host || s.port !== session.port
+        (s) => s.host !== session.host || s.port !== session.port,
       ),
     ];
     const disabledOthers = moved.map((s) =>
       s.host === session.host && s.port === session.port
         ? s
-        : { ...s, status: "disabled" }
+        : { ...s, status: "disabled" },
     );
 
     setSessions(disabledOthers);
@@ -148,7 +148,7 @@ export default function WelcomePage() {
       try {
         localStorage.setItem(
           "activeHost",
-          JSON.stringify({ host: session.host, port: session.port })
+          JSON.stringify({ host: session.host, port: session.port }),
         );
       } catch (e) {
         // ignore (e.g., not in browser env during SSR)
@@ -168,21 +168,21 @@ export default function WelcomePage() {
 
           if (s.host === data.host && sPort === dataPort) {
             console.log(
-              `Updating session ${s.host}:${sPort} - online: ${data.online}`
+              `Updating session ${s.host}:${sPort} - online: ${data.online}`,
             );
 
             try {
               const stored = JSON.parse(
-                localStorage.getItem("activeHost") || "{}"
+                localStorage.getItem("activeHost") || "{}",
               );
-              
+
               if (stored.host) {
                 localStorage.setItem(
                   "activeHost",
                   JSON.stringify({
                     ...stored,
                     status: data.online ? "online" : "offline",
-                  })
+                  }),
                 );
               }
             } catch {}
@@ -323,12 +323,12 @@ export default function WelcomePage() {
                       s.status === "online"
                         ? "Online"
                         : s.status === "offline"
-                        ? "Offline"
-                        : s.status === "checking"
-                        ? "Checking"
-                        : s.status === "disabled"
-                        ? "Disabled"
-                        : "Idle"
+                          ? "Offline"
+                          : s.status === "checking"
+                            ? "Checking"
+                            : s.status === "disabled"
+                              ? "Disabled"
+                              : "Idle"
                     }
                     style={{
                       marginLeft: 8,
@@ -340,12 +340,12 @@ export default function WelcomePage() {
                         s.status === "online"
                           ? "#28a745"
                           : s.status === "offline"
-                          ? "#dc3545"
-                          : s.status === "checking"
-                          ? "#999"
-                          : s.status === "disabled"
-                          ? "#ddd"
-                          : "#bbb",
+                            ? "#dc3545"
+                            : s.status === "checking"
+                              ? "#999"
+                              : s.status === "disabled"
+                                ? "#ddd"
+                                : "#bbb",
                     }}
                   />
                 </div>
