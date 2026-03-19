@@ -15,6 +15,7 @@ import { useEffect } from "react";
 import { ThemeProvider } from "./context/ThemeContext";
 import { IdleTimeoutProvider } from "./context/IdleTimeoutContext";
 import { SessionTimeoutWrapper } from "./context/SessionTimeoutWrapper";
+import { ConnectionProvider } from "./context/ConnectionContext";
 function App() {
   useEffect(() => {
     if (!import.meta.env.DEV) {
@@ -39,55 +40,57 @@ function App() {
     <OutletDisableProvider>
       <ThemeProvider>
         <Router>
-          <SessionTimeoutWrapper>
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <OpenRouting>
-                    <Login />
-                  </OpenRouting>
-                }
+          <ConnectionProvider>
+            <SessionTimeoutWrapper>
+              <Routes>
+                <Route
+                  path="/"
+                  element={
+                    <OpenRouting>
+                      <Login />
+                    </OpenRouting>
+                  }
+                />
+                <Route
+                  path="/connection"
+                  element={
+                    <PrivateRouting>
+                      <IdleTimeoutProvider>
+                        <ConnectionPage />
+                      </IdleTimeoutProvider>
+                    </PrivateRouting>
+                  }
+                />
+                <Route
+                  path="/setting"
+                  element={
+                    <PrivateRouting>
+                      <IdleTimeoutProvider>
+                        <SettingPage />
+                      </IdleTimeoutProvider>
+                    </PrivateRouting>
+                  }
+                >
+                  <Route index element={<RadioPage />} />
+                  <Route path="radio" element={<RadioPage />} />
+                  <Route path="freq" element={<FREQPage />} />
+                  <Route path="crypto" element={<CryptoTable />} />
+                  <Route path="not-found" element={<PageNotFound />} />
+                </Route>
+              </Routes>
+              <ToastContainer
+                position="top-right"
+                autoClose={4000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                pauseOnHover
+                draggable
+                theme="light"
+                limit={3}
               />
-              <Route
-                path="/connection"
-                element={
-                  <PrivateRouting>
-                    <IdleTimeoutProvider>
-                      <ConnectionPage />
-                    </IdleTimeoutProvider>
-                  </PrivateRouting>
-                }
-              />
-              <Route
-                path="/setting"
-                element={
-                  <PrivateRouting>
-                    <IdleTimeoutProvider>
-                      <SettingPage />
-                    </IdleTimeoutProvider>
-                  </PrivateRouting>
-                }
-              >
-                <Route index element={<RadioPage />} />
-                <Route path="radio" element={<RadioPage />} />
-                <Route path="freq" element={<FREQPage />} />
-                <Route path="crypto" element={<CryptoTable />} />
-                <Route path="not-found" element={<PageNotFound />} />
-              </Route>
-            </Routes>
-            <ToastContainer
-              position="top-right"
-              autoClose={4000}
-              hideProgressBar={false}
-              newestOnTop
-              closeOnClick
-              pauseOnHover
-              draggable
-              theme="light"
-              limit={3}
-            />
-          </SessionTimeoutWrapper>
+            </SessionTimeoutWrapper>
+          </ConnectionProvider>
         </Router>
       </ThemeProvider>
     </OutletDisableProvider>

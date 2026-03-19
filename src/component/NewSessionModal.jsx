@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import "../assets/css/NewSessionModal.css";
 import { useTranslation } from "react-i18next";
 import { MdDeleteOutline } from "react-icons/md";
 import AllSessionsModal from "./AllSessionsModal";

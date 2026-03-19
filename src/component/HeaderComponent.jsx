@@ -13,12 +13,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { getHardwareStatusFunc } from "../store/apis/SystemStatus/systemStatusSlice";
 import { MdGpsFixed } from "react-icons/md";
 import { useTranslation } from "react-i18next";
-import { disconnectHostHelper } from "../helper/hostHelper";
+import { useConnection } from "../context/ConnectionContext";
 
 const HeaderComponent = ({ title, icon, check_health }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { t, i18n } = useTranslation();
+  const { stopCurrentActive } = useConnection();
   const sysLang = localStorage.getItem("sys_lang") || "en";
   const [currTime, setCurrTime] = useState(new Date().toLocaleTimeString());
   const { hardwareStatus } = useSelector((state) => state.systemStatus);
@@ -202,7 +203,7 @@ const HeaderComponent = ({ title, icon, check_health }) => {
               }}
               id="disconnect_button"
               onClick={() => {
-                disconnectHostHelper();
+                stopCurrentActive();
                 navigate("/connection");
               }}
               title={t("shutdown")}

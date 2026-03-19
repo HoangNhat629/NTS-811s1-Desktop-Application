@@ -46,7 +46,6 @@ import { useSaveAll } from "../context/SaveAllContext";
 import { useSaveAllProgress } from "../context/SaveAllProgressContext";
 import { useOutletDisable } from "../context/OutletDisableContext";
 import { SaveAllProgress } from "./SaveAllProgress";
-import { disconnectHostHelper, persistHelper } from "../helper/hostHelper";
 import LoadingPage from "../pages/LoadingPage";
 import { key_secret } from "../constants/appInf";
 import {
@@ -56,7 +55,7 @@ import {
 } from "../constants/toastId";
 import { useConnectionStatus } from "../hooks/useConnectionStatus";
 import { ConnectDeviceModal } from "./NewSessionModal";
-import { electronAPI } from "../tauri-shim";
+import { useConnection } from "../context/ConnectionContext";
 
 const SAVE_LABELS = {
   radio: "Radio Configuration",
@@ -75,8 +74,23 @@ export const Sidebar = () => {
   const { getEditingData } = useEditingExport();
   const { enableOutlets, isOutletDisabled } = useOutletDisable();
   const { connected } = useConnectionStatus();
-  const [outletDisabledState, setOutletDisabledState] = useState(true);
-  const [showConnectionPanel, setShowConnectionPanel] = useState(false);
+  const { executeAllSaveSequential, saveFunctions } = useSaveAll();
+  const {
+    initializeProgress,
+    updateItemStatus,
+    startProcessing,
+    finishProcessing,
+    resetProgress,
+  } = useSaveAllProgress();
+  const {
+    sessions,
+    activeSession,
+    showModal,
+    setShowModal,
+    handleConnect,
+    deleteHost,
+    stopCurrentActive,
+  } = useConnection();
 
   const MENU_ITEMS = [
     { id: "radio", icon: MdCellTower, label: "RADIO", path: "radio" },
@@ -105,19 +119,14 @@ export const Sidebar = () => {
     return menu?.id || "radio";
   }, [location.pathname]);
 
+  const [outletDisabledState, setOutletDisabledState] = useState(true);
   const [selectedMenu, setSelectedMenu] = useState(() => getInitialMenu());
   const [isLoading, setIsLoanding] = useState(false);
   const [isSavingAll, setIsSavingAll] = useState(false);
   const [showExportModeModal, setShowExportModeModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const { executeAllSaveSequential, saveFunctions } = useSaveAll();
-  const {
-    initializeProgress,
-    updateItemStatus,
-    startProcessing,
-    finishProcessing,
-    resetProgress,
-  } = useSaveAllProgress();
+  const [isRebooting, setIsRebooting] = useState(false);
+  const [rebootProgress, setRebootProgress] = useState(0);
   const [confirmDialog, setConfirmDialog] = useState({
     show: false,
     message: "",
@@ -125,11 +134,6 @@ export const Sidebar = () => {
     onCancel: () => {},
     showCancel: true,
   });
-  const [isRebooting, setIsRebooting] = useState(false);
-  const [rebootProgress, setRebootProgress] = useState(0);
-  const [sessions, setSessions] = useState([]);
-  const [activeSession, setActiveSession] = useState(null);
-  const [shouldNavigate, setShouldNavigate] = useState(null);
 
   useEffect(() => {
     const checkOutletState = () => {
@@ -159,103 +163,6 @@ export const Sidebar = () => {
       navigate(menu.path, { replace: true });
     }
   }, [location.pathname, navigate]);
-
-  useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("recentSessions") || "[]");
-    const norm = saved.map((s) => ({
-      host: s.host,
-      port: s.port,
-      online: typeof s.online !== "undefined" ? s.online : undefined,
-      lastChecked: s.lastChecked || null,
-      status: s.status || "idle",
-    }));
-    setSessions(norm);
-  }, []);
-
-  useEffect(() => {
-    const handler = (data) => {
-      console.log("Received ping:status event:", data);
-      setSessions((prev) => {
-        const next = prev.map((s) => {
-          const sPort = Number(s.port);
-          const dataPort = Number(data.port);
-
-          if (s.host === data.host && sPort === dataPort) {
-            console.log(
-              `Updating session ${s.host}:${sPort} - online: ${data.online}`
-            );
-
-            try {
-              const stored = JSON.parse(
-                localStorage.getItem("activeHost") || "{}"
-              );
-
-              if (stored.host) {
-                localStorage.setItem(
-                  "activeHost",
-                  JSON.stringify({
-                    ...stored,
-                    status: data.online ? "online" : "offline",
-                  })
-                );
-              }
-            } catch {}
-
-            return {
-              ...s,
-              online: data.online,
-              lastChecked: data.timestamp,
-              status: data.online ? "online" : "offline",
-            };
-          }
-          return s;
-        });
-
-        persistHelper(next);
-        return next;
-      });
-
-      if (
-        data.online &&
-        activeSession &&
-        activeSession.host === data.host &&
-        Number(activeSession.port) === Number(data.port)
-      ) {
-        console.log("Navigating to settings page");
-        setShouldNavigate({
-          host: data.host,
-          port: data.port,
-        });
-      }
-    };
-
-    console.log("Registering ping:status listener");
-    electronAPI.ipcRenderer.on("ping:status", handler);
-    return () => {
-      console.log("Removing ping:status listener");
-      electronAPI.ipcRenderer.removeListener("ping:status", handler);
-    };
-  }, [activeSession]);
-
-  useEffect(() => {
-    if (!shouldNavigate) return;
-
-    const { host, port } = shouldNavigate;
-    const url = `http://${host}:${port}`;
-
-    try {
-      setBaseURL(url);
-    } catch {
-      localStorage.setItem("apiBase", url);
-    }
-    
-    // navigate("/setting", {
-    //   replace: true,
-    //   state: { host, port },
-    // });
-
-    setShouldNavigate(null);
-  }, [shouldNavigate, navigate]);
 
   const handleMenuClick = useCallback((menu) => {
     setSelectedMenu(menu);
@@ -563,107 +470,10 @@ export const Sidebar = () => {
           );
           return;
         } finally {
-          disconnectHostHelper();
+          stopCurrentActive();
         }
       },
       onCancel: () => setConfirmDialog({ show: false }),
-    });
-  };
-
-  const handleDeviceConnect = async (session) => {
-    const existing = sessions.find(
-      (s) => s.host === session.host && s.port === session.port
-    );
-
-    if (existing && existing.status === "disabled") return;
-
-    if (
-      activeSession &&
-      activeSession.host === session.host &&
-      activeSession.port === session.port
-    ) {
-      stopCurrentActive();
-      setShowConnectionPanel(false);
-      return;
-    }
-
-    const moved = [
-      { ...session, status: "checking", online: undefined },
-      ...sessions.filter(
-        (s) => s.host !== session.host || s.port !== session.port
-      ),
-    ];
-    const disabledOthers = moved.map((s) =>
-      s.host === session.host && s.port === session.port
-        ? s
-        : { ...s, status: "disabled" }
-    );
-
-    setSessions(disabledOthers);
-    persistHelper(disabledOthers);
-
-    setShowConnectionPanel(false);
-    try {
-      console.log("Calling ping:start for:", session.host, session.port);
-      await electronAPI.ipcRenderer.send("ping:start", {
-        host: session.host,
-        port: session.port,
-      });
-      console.log("ping:start succeeded");
-      setActiveSession({ host: session.host, port: session.port });
-      try {
-        localStorage.setItem(
-          "activeHost",
-          JSON.stringify({ host: session.host, port: session.port })
-        );
-      } catch (e) {
-        // ignore (e.g., not in browser env during SSR)
-      }
-    } catch (e) {
-      console.error("Failed to request ping:start", e);
-    }
-  };
-
-  const stopCurrentActive = () => {
-    if (!activeSession) return;
-    try {
-      electronAPI.ipcRenderer.send("ping:stop", {
-        host: activeSession.host,
-        port: activeSession.port,
-      });
-    } catch (e) {
-      console.error("Failed to request ping:stop for previous", e);
-    }
-
-    setSessions((prev) => {
-      const next = prev.map((s) => ({ ...s, status: "idle" }));
-      persistHelper(next);
-      return next;
-    });
-
-    try {
-      localStorage.removeItem("activeHost");
-      try {
-        setBaseURL("");
-      } catch (e) {
-        localStorage.removeItem("apiBase");
-      }
-    } catch (e) {
-      // ignore (e.g., not in browser env during SSR)
-    }
-
-    setActiveSession(null);
-  };
-
-  const deleteHost = (host, port) => {
-    if (activeSession?.host === host && activeSession?.port === port) {
-      stopCurrentActive();
-    }
-
-    setSessions((prev) => {
-      const updated = prev.filter((s) => !(s.host === host && s.port === port));
-      persistHelper(updated);
-      return updated;
     });
   };
 
@@ -683,10 +493,10 @@ export const Sidebar = () => {
         isLoading={isExporting}
       />
       {isRebooting && <LoadingPage loadingProcess={rebootProgress} />}
-      {showConnectionPanel && (
+      {showModal && (
         <ConnectDeviceModal
-          onCancel={() => setShowConnectionPanel(false)}
-          onConnect={handleDeviceConnect}
+          onCancel={() => setShowModal(false)}
+          onConnect={handleConnect}
           onDelete={deleteHost}
           sessions={sessions}
           activeSession={activeSession}
@@ -779,7 +589,7 @@ export const Sidebar = () => {
               <button
                 className="system-backup-btn"
                 disabled={isLoading || isSavingAll}
-                onClick={() => setShowConnectionPanel(true)}
+                onClick={() => setShowModal(true)}
               >
                 <MdLink style={{ marginRight: "5px" }} size={20} />
                 {t("connect_device")}
@@ -798,7 +608,7 @@ export const Sidebar = () => {
             <button
               className="system-backup-btn"
               onClick={() => {
-                disconnectHostHelper();
+                stopCurrentActive();
                 navigate("/connection");
               }}
               disabled={isLoading || isSavingAll}
