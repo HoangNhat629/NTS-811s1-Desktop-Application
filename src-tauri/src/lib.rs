@@ -7,7 +7,7 @@ use std::{
     thread,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
-
+use serde_json::Value;
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
 
@@ -200,6 +200,39 @@ fn clear_session_close_time(app: AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+fn create_file_draft(app: AppHandle, payload: Value) -> Result<(), String> {
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Cannot resolve app data dir: {e}"))?;
+
+    std::fs::create_dir_all(&app_data_dir)
+        .map_err(|e| format!("Cannot create app data dir: {e}"))?;
+
+    let file_path = app_data_dir.join("file_draft_config.json");
+
+    std::fs::write(
+        &file_path,
+        serde_json::to_string_pretty(&payload)
+            .map_err(|e| e.to_string())?,
+    )
+    .map_err(|e| format!("Cannot write file: {e}"))?;
+
+    println!("File draft created.");
+    Ok(())
+}
+
+fn delete_file_draft(app: &AppHandle) {
+    if let Ok(dir) = app.path().app_data_dir() {
+        let file = dir.join("file_draft_config.json");
+
+        if file.exists() {
+            let _ = std::fs::remove_file(file);
+        }
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -210,7 +243,8 @@ pub fn run() {
             stop_ping,
             set_session_close_time,
             get_session_close_time,
-            clear_session_close_time
+            clear_session_close_time,
+            create_file_draft
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
@@ -225,7 +259,12 @@ pub fn run() {
                             let _ = std::fs::write(file_path, timestamp.as_millis().to_string());
                         }
                     }
+
+                    delete_file_draft(_app);
                 }
+            }
+            RunEvent::Exit => {
+                delete_file_draft(_app);
             }
             _ => {}
         });

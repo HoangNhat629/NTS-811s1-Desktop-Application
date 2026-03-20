@@ -56,6 +56,7 @@ const electronAPI = {
   readSessionCloseTime: () => invoke("get_session_close_time"),
   setSessionCloseTime: () => invoke("set_session_close_time"),
   clearSessionCloseTime: () => invoke("clear_session_close_time"),
+  createFileDraft: (payload) => invoke("create_file_draft", { payload }),
 };
 
 export { electronAPI };

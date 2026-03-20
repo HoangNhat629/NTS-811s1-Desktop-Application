@@ -152,6 +152,7 @@ const handlePingStatus = (navigate) => (data) => {
 
   const { host: aHost, port: aPort } = JSON.parse(activeRaw);
   const dataPort = Number(data.port);
+
   if (
     data.host !== aHost ||
     dataPort !== Number(aPort) ||
@@ -193,8 +194,11 @@ const handlePingStatus = (navigate) => (data) => {
 
 function WrappedSettingPage(props) {
   const navigate = useNavigate();
-
+  const { connected } = useConnectionStatus();
   useEffect(() => {
+    if (!connected) {
+      return;
+    }
     const handler = handlePingStatus(navigate);
     console.log("Registering ping:status listener");
     electronAPI.ipcRenderer.on("ping:status", handler);

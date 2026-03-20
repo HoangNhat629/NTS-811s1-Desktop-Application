@@ -56,6 +56,7 @@ import {
 import { useConnectionStatus } from "../hooks/useConnectionStatus";
 import { ConnectDeviceModal } from "./NewSessionModal";
 import { useConnection } from "../context/ConnectionContext";
+import { electronAPI } from "../tauri-shim";
 
 const SAVE_LABELS = {
   radio: "Radio Configuration",
@@ -212,6 +213,10 @@ export const Sidebar = () => {
       toast.success(t("loadDefaultSuccess"), {
         toastId: TOAST_SUCCESS_ID,
       });
+
+      if(!connected) {
+        await electronAPI.createFileDraft(defaultPayload);
+      }
     } catch (err) {
       console.error("Error loading default configuration:", err);
       toast.error(err?.message || t("loadDefaultFailed"), {
@@ -607,7 +612,7 @@ export const Sidebar = () => {
 
             <button
               className="system-backup-btn"
-              onClick={() => {
+              onClick={async() => {
                 stopCurrentActive();
                 navigate("/connection");
               }}

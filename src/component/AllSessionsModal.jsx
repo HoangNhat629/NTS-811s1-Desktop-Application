@@ -70,7 +70,7 @@ export default function AllSessionsModal({
                     }}
                   />
                   {isActive && (
-                    <span style={{ fontSize: 12, color: "#333" }}>Active</span>
+                    <span style={{ fontSize: 12}}>Active</span>
                   )}
                 </div>
               </div>
