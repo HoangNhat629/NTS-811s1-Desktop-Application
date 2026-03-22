@@ -219,7 +219,7 @@ fn create_file_draft(app: AppHandle, payload: Value) -> Result<(), String> {
     )
     .map_err(|e| format!("Cannot write file: {e}"))?;
 
-    println!("File draft created.");
+    println!("File draft created {:?}", file_path);
     Ok(())
 }
 

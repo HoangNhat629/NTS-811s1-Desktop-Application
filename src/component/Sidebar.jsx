@@ -302,6 +302,9 @@ export const Sidebar = () => {
       toast.success("Export successful", {
         toastId: TOAST_SUCCESS_ID,
       });
+      if (!connected) {
+        await electronAPI.createFileDraft(editingData);
+      }
     } catch (error) {
       console.error("Failed to export editing file:", error);
       throw error;
@@ -367,6 +370,9 @@ export const Sidebar = () => {
           : "Editing file import successful!",
         { toastId: TOAST_SUCCESS_ID },
       );
+      if (!connected) {
+        await electronAPI.createFileDraft(importPayload);
+      }
     } catch (err) {
       console.error("Import error:", err);
       toast.error(err?.message || t("importFailed") || "Import failed", {
@@ -590,7 +596,12 @@ export const Sidebar = () => {
               <button
                 className="system-backup-btn"
                 disabled={isLoading || isSavingAll}
-                onClick={() => setShowModal(true)}
+                onClick={async () => {
+                  setShowModal(true);
+                  if (!connected) {
+                    await electronAPI.createFileDraft(getEditingData());
+                  }
+                }}
               >
                 <MdLink style={{ marginRight: "5px" }} size={20} />
                 {t("connect_device")}
@@ -611,6 +622,9 @@ export const Sidebar = () => {
               onClick={async () => {
                 stopCurrentActive();
                 navigate("/connection");
+                if (!connected) {
+                  await electronAPI.createFileDraft(getEditingData());
+                }
               }}
               disabled={isLoading || isSavingAll}
             >
