@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   MdCellTower,
@@ -207,14 +207,14 @@ export const Sidebar = () => {
       window.dispatchEvent(
         new CustomEvent("systemDataImported", {
           detail: { type: "default", data: defaultPayload },
-        })
+        }),
       );
 
       toast.success(t("loadDefaultSuccess"), {
         toastId: TOAST_SUCCESS_ID,
       });
 
-      if(!connected) {
+      if (!connected) {
         await electronAPI.createFileDraft(defaultPayload);
       }
     } catch (err) {
@@ -225,10 +225,6 @@ export const Sidebar = () => {
     } finally {
       setIsLoanding(false);
     }
-  };
-
-  const handleExport = async () => {
-    setShowExportModeModal(true);
   };
 
   const handleExportModeSelect = async (mode) => {
@@ -282,7 +278,7 @@ export const Sidebar = () => {
 
     handleExportHelper(
       JSON.stringify({ jwe: token }, null, 2),
-      `system_backup_${parseInt((Date.now() / 1000).toFixed(0))}.json`
+      `system_backup_${parseInt((Date.now() / 1000).toFixed(0))}.json`,
     );
 
     toast.success(t("successCryptExport"), {
@@ -362,14 +358,14 @@ export const Sidebar = () => {
             type: fileContent?.jwe ? "encrypted" : "editing",
             data: importPayload,
           },
-        })
+        }),
       );
 
       toast.success(
         fileContent?.jwe
           ? "Encrypted import successful!"
           : "Editing file import successful!",
-        { toastId: TOAST_SUCCESS_ID }
+        { toastId: TOAST_SUCCESS_ID },
       );
     } catch (err) {
       console.error("Import error:", err);
@@ -396,7 +392,7 @@ export const Sidebar = () => {
         updateItemStatus(
           progress.index,
           progress.status,
-          progress.error || null
+          progress.error || null,
         );
       });
 
@@ -420,7 +416,7 @@ export const Sidebar = () => {
           `${successful.length}/${results.length} saved. Failed: ${failedLabels}`,
           {
             toastId: TOAST_WARNING_ID,
-          }
+          },
         );
       } else {
         toast.error(t("failed_to_save_all_configurations"), {
@@ -471,7 +467,7 @@ export const Sidebar = () => {
           }
         } catch (err) {
           console.log(
-            err.message || err || "An error occurred. Please try again."
+            err.message || err || "An error occurred. Please try again.",
           );
           return;
         } finally {
@@ -557,7 +553,7 @@ export const Sidebar = () => {
               {t("Import")}
             </button>
             <button
-              onClick={handleExport}
+              onClick={() => setShowExportModeModal(true)}
               className="system-backup-btn"
               disabled={isLoading || isSavingAll}
             >
@@ -612,7 +608,7 @@ export const Sidebar = () => {
 
             <button
               className="system-backup-btn"
-              onClick={async() => {
+              onClick={async () => {
                 stopCurrentActive();
                 navigate("/connection");
               }}
