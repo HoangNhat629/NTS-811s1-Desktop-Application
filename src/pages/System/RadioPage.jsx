@@ -26,7 +26,11 @@ import { useDefaultDataMode } from "../../hooks/useDefaultDataMode";
 import { useSaveAll } from "../../context/SaveAllContext";
 import { useOutletDisable } from "../../context/OutletDisableContext";
 import { useEditingExport } from "../../context/EditingExportContext";
-import { sleep, validateChannelParams } from "../../helper/settingHelper";
+import {
+  readFileDraft,
+  sleep,
+  validateChannelParams,
+} from "../../helper/settingHelper";
 import { HideComponent } from "../../component/HideComponent";
 import { TOAST_ERROR_ID, TOAST_SUCCESS_ID } from "../../constants/toastId";
 import ConfirmDialog from "../../component/ConfirmDialog";
@@ -257,14 +261,33 @@ export const RadioPage = () => {
     );
   };
 
-  useEffect(() => {
-    if (
-      !generalDefaultMode.shouldSkipApiCall &&
-      !channelDefaultMode.shouldSkipApiCall
-    ) {
-      loadGeneralConfigurationData();
-      loadAllChannelConfigurationData();
+  const loadDataHandle = async () => {
+    const draftFile = await readFileDraft();
+
+    if (draftFile.isExist && draftFile.data) {
+      dispatchGeneral({
+        type: "SET_ALL",
+        payload: draftFile.data.generalConfiguration ?? {},
+      });
+
+      setChannelsParamters(draftFile.data.channelParameters || []);
+    } else {
+      await loadGeneralConfigurationData();
+      await loadAllChannelConfigurationData();
     }
+  };
+
+  useEffect(() => {
+    const init = async () => {
+      if (
+        !generalDefaultMode.shouldSkipApiCall &&
+        !channelDefaultMode.shouldSkipApiCall
+      ) {
+        await loadDataHandle();
+      }
+    };
+
+    init();
     // eslint-disable-next-line
   }, [
     generalDefaultMode.shouldSkipApiCall,
@@ -1052,10 +1075,7 @@ export const RadioPage = () => {
                       ))
                     ) : (
                       <tr>
-                        <td
-                          colSpan="12"
-                          className="text-center py-4"
-                        >
+                        <td colSpan="12" className="text-center py-4">
                           {filteredChannels.length === 0 && searchChannel
                             ? t("no_matching_channels_found")
                             : t("no_data_available")}

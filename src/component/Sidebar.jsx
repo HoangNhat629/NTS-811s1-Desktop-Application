@@ -207,7 +207,7 @@ export const Sidebar = () => {
       window.dispatchEvent(
         new CustomEvent("systemDataImported", {
           detail: { type: "default", data: defaultPayload },
-        }),
+        })
       );
 
       toast.success(t("loadDefaultSuccess"), {
@@ -278,7 +278,7 @@ export const Sidebar = () => {
 
     handleExportHelper(
       JSON.stringify({ jwe: token }, null, 2),
-      `system_backup_${parseInt((Date.now() / 1000).toFixed(0))}.json`,
+      `system_backup_${parseInt((Date.now() / 1000).toFixed(0))}.json`
     );
 
     toast.success(t("successCryptExport"), {
@@ -302,9 +302,6 @@ export const Sidebar = () => {
       toast.success("Export successful", {
         toastId: TOAST_SUCCESS_ID,
       });
-      if (!connected) {
-        await electronAPI.createFileDraft(editingData);
-      }
     } catch (error) {
       console.error("Failed to export editing file:", error);
       throw error;
@@ -361,18 +358,24 @@ export const Sidebar = () => {
             type: fileContent?.jwe ? "encrypted" : "editing",
             data: importPayload,
           },
-        }),
+        })
       );
+
+      if (
+        !connected &&
+        importPayload.allCryptoTable != null &&
+        importPayload.channelParameters?.length > 0 &&
+        importPayload.frequencyTable?.length > 0
+      ) {
+        await electronAPI.createFileDraft(importPayload);
+      }
 
       toast.success(
         fileContent?.jwe
           ? "Encrypted import successful!"
           : "Editing file import successful!",
-        { toastId: TOAST_SUCCESS_ID },
+        { toastId: TOAST_SUCCESS_ID }
       );
-      if (!connected) {
-        await electronAPI.createFileDraft(importPayload);
-      }
     } catch (err) {
       console.error("Import error:", err);
       toast.error(err?.message || t("importFailed") || "Import failed", {
@@ -398,7 +401,7 @@ export const Sidebar = () => {
         updateItemStatus(
           progress.index,
           progress.status,
-          progress.error || null,
+          progress.error || null
         );
       });
 
@@ -422,7 +425,7 @@ export const Sidebar = () => {
           `${successful.length}/${results.length} saved. Failed: ${failedLabels}`,
           {
             toastId: TOAST_WARNING_ID,
-          },
+          }
         );
       } else {
         toast.error(t("failed_to_save_all_configurations"), {
@@ -473,7 +476,7 @@ export const Sidebar = () => {
           }
         } catch (err) {
           console.log(
-            err.message || err || "An error occurred. Please try again.",
+            err.message || err || "An error occurred. Please try again."
           );
           return;
         } finally {
@@ -559,7 +562,9 @@ export const Sidebar = () => {
               {t("Import")}
             </button>
             <button
-              onClick={() => setShowExportModeModal(true)}
+              onClick={() => {
+                setShowExportModeModal(true);
+              }}
               className="system-backup-btn"
               disabled={isLoading || isSavingAll}
             >
@@ -597,9 +602,10 @@ export const Sidebar = () => {
                 className="system-backup-btn"
                 disabled={isLoading || isSavingAll}
                 onClick={async () => {
+                  const editingData = getEditingData();
                   setShowModal(true);
                   if (!connected) {
-                    await electronAPI.createFileDraft(getEditingData());
+                    await electronAPI.createFileDraft(editingData);
                   }
                 }}
               >
@@ -620,11 +626,17 @@ export const Sidebar = () => {
             <button
               className="system-backup-btn"
               onClick={async () => {
+                const editingData = getEditingData();
                 stopCurrentActive();
-                navigate("/connection");
-                if (!connected) {
-                  await electronAPI.createFileDraft(getEditingData());
+                if (
+                  !connected &&
+                  editingData.allCryptoTable != null &&
+                  editingData.channelParameters?.length > 0 &&
+                  editingData.frequencyTable?.length > 0
+                ) {
+                  await electronAPI.createFileDraft(editingData);
                 }
+                navigate("/connection");
               }}
               disabled={isLoading || isSavingAll}
             >

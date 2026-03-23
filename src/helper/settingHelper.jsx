@@ -24,6 +24,37 @@ export async function loadXmlConfig() {
   return await res.text();
 }
 
+export async function readFileDraft() {
+  if (!electronAPI.readFileDraft) {
+    return {
+      message: "Draft service unavailable",
+      data: null,
+      isExist: false,
+    };
+  }
+
+  try {
+    const draftFile = await electronAPI.readFileDraft();
+
+    const isValid =
+      draftFile &&
+      typeof draftFile === "object" &&
+      Object.keys(draftFile).length > 0;
+
+    return {
+      message: isValid ? "Draft restored" : "No saved draft",
+      data: isValid ? draftFile : null,
+      isExist: isValid,
+    };
+  } catch (error) {
+    return {
+      message: "No saved draft",
+      data: null,
+      isExist: false,
+    };
+  }
+}
+
 export async function getSecretKeyHelper(password) {
   const enc = new TextEncoder();
 
@@ -310,7 +341,7 @@ export const parseGeneralConfigFromXmlHelper = async () => {
       u8Attr: 0,
       u8EnableEthernet: 1,
       u8Squelch: 2,
-      u8CompatibleMode: 1
+      u8CompatibleMode: 1,
     };
   } catch (error) {
     console.error("Error parsing general config XML:", error);

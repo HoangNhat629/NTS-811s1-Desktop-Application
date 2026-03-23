@@ -223,6 +223,31 @@ fn create_file_draft(app: AppHandle, payload: Value) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+fn read_file_draft(app: AppHandle) -> Result<Value, String> {
+    let app_data_dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Cannot resolve app data dir: {e}"))?;
+    
+    let file_path = app_data_dir.join("file_draft_config.json");
+
+    if !file_path.exists() {
+        return Err("Draft file does not exist".into());
+    }
+
+    let content = std::fs::read_to_string(&file_path)
+        .map_err(|e| format!("Cannot read file: {e}"))?;
+
+    let json: Value =
+        serde_json::from_str(&content)
+            .map_err(|e| format!("Invalid JSON: {e}"))?;
+
+    println!("File draft loaded {:?}", file_path);
+
+    Ok(json)
+}
+
 fn delete_file_draft(app: &AppHandle) {
     if let Ok(dir) = app.path().app_data_dir() {
         let file = dir.join("file_draft_config.json");
@@ -244,7 +269,8 @@ pub fn run() {
             set_session_close_time,
             get_session_close_time,
             clear_session_close_time,
-            create_file_draft
+            create_file_draft, 
+            read_file_draft 
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
