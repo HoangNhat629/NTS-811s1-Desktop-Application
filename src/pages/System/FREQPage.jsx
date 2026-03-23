@@ -21,6 +21,7 @@ import {
   normalizeFrequencyHelper,
   sleep,
   validateFreqBandHelper,
+  readFileDraft,
 } from "../../helper/settingHelper";
 import { BAND, step_min } from "../../constants/validFreq";
 import { useDefaultDataMode } from "../../hooks/useDefaultDataMode";
@@ -171,6 +172,27 @@ export const FREQPage = () => {
     );
     return bandSet.size > 1;
   }, [parsedFrequencies]);
+
+    // useEffect(() => {
+    //   const loadDraft = async () => {
+    //     const draftFile = await readFileDraft();
+    //     if (draftFile.isExist && draftFile.data && draftFile.data.frequencyTable) {
+    //       Object.keys(draftFile.data.frequencyTable).forEach((tableId) => {
+    //         cacheRef.current[tableId] = {
+    //           source: "draft",
+    //           data: draftFile.data.frequencyTable[tableId],
+    //         };
+    //       });
+    //       if (cacheRef.current[selectedTable]) {
+    //         setCurrentTableData(cacheRef.current[selectedTable].data);
+    //         setCurrentTableSource("draft");
+    //         const meta = calculateFreqTableMeta(cacheRef.current[selectedTable].data);
+    //         setCurrentTableMeta(meta);
+    //       }
+    //     }
+    //   };
+    //   loadDraft();
+    // }, []);
 
   useEffect(() => {
     loadTableData(selectedTable);

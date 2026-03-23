@@ -7,7 +7,7 @@ import {
 } from "react-icons/md";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
-import { genRandomHexHelper, sleep } from "../../helper/settingHelper";
+import { genRandomHexHelper, sleep, readFileDraft } from "../../helper/settingHelper";
 import { LoadingComponent } from "../../component/LoadingComponent";
 import { toast } from "react-toastify";
 import {
@@ -121,6 +121,23 @@ export const CryptoTable = () => {
     },
     [dispatch, t]
   );
+
+  useEffect(() => {
+    const loadDraft = async () => {
+      const draftFile = await readFileDraft();
+      if (draftFile.isExist && draftFile.data && draftFile.data.allCryptoTable) {
+        Object.keys(draftFile.data.allCryptoTable).forEach((keyType) => {
+          cacheRef.current[keyType] = {
+            source: "draft",
+            data: draftFile.data.allCryptoTable[keyType],
+            isGenerated: false,
+          };
+        });
+        setCurrentCryptoTable(cacheRef.current[selectedKeyType]?.data || []);
+      }
+    };
+    loadDraft();
+  }, []);
 
   useEffect(() => {
     loadCryptoTable(selectedKeyType);
