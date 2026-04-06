@@ -4,7 +4,9 @@ import { MdPerson, MdVpnKey } from "react-icons/md";
 import { toast } from "react-toastify";
 import { app_name } from "../constants/appInf.jsx";
 import { TOAST_ERROR_ID } from "../constants/toastId.jsx";
+import { useTranslation } from "react-i18next";
 export default function Login() {
+  const { t } = useTranslation();
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -16,7 +18,7 @@ export default function Login() {
           <div className="input-box">
             <input
               type="text"
-              placeholder="Username"
+              placeholder={t("username")}
               onChange={(e) => setUserName(e.target.value)}
               required
             />
@@ -34,7 +36,7 @@ export default function Login() {
             <input
               onChange={(e) => setPassword(e.target.value)}
               type="password"
-              placeholder="Password"
+              placeholder={t("password")}
               required
             />
             <MdVpnKey
@@ -61,7 +63,7 @@ export default function Login() {
               }
             }}
           >
-            Login
+            {t("login")}
           </button>
         </form>
       </div>

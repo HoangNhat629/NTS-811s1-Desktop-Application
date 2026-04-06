@@ -16,6 +16,7 @@ import { useOutletDisable } from "../../context/OutletDisableContext";
 import axios from "axios";
 import { electronAPI } from "../../tauri-shim";
 import { useConnectionStatus } from "../../hooks/useConnectionStatus";
+import { readFileDraft } from "../../helper/settingHelper";
 
 const SettingPageInner = () => {
   const location = useLocation();
@@ -29,8 +30,8 @@ const SettingPageInner = () => {
   const flagClickRef = useRef(false);
   const titleMap = {
     radio: "RADIO",
-    freq: "FREQ TABLE",
-    crypto: "CRYPTOGRAPHIC TABLE",
+    freq: t("FreqTable").toUpperCase(),
+    crypto: t("CryptographicTable").toUpperCase(),
   };
 
   const getTitle = () => {
@@ -38,6 +39,16 @@ const SettingPageInner = () => {
       location.pathname.includes(key)
     );
     return `${t("config").toUpperCase()} / ${matched ? matched[1] : ""}`;
+  };
+
+  const isLocalModeAvailable = async () => {
+    try {
+      const draft = await readFileDraft();
+      return Boolean(draft?.isExist);
+    } catch (err) {
+      console.warn("Draft check failed:", err);
+      return false;
+    }
   };
 
   const checkHealth = async () => {
@@ -64,6 +75,9 @@ const SettingPageInner = () => {
       const ok = await checkHealth();
       setServerOK(ok);
       if (ok && location.pathname === "/setting") {
+        if (await isLocalModeAvailable()) {
+          enableOutlets();
+        }
         navigate("/setting/radio", { replace: true });
       }
     };

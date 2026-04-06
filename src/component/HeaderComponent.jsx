@@ -20,7 +20,7 @@ const HeaderComponent = ({ title, icon, check_health }) => {
   const dispatch = useDispatch();
   const { t, i18n } = useTranslation();
   const { stopCurrentActive } = useConnection();
-  const sysLang = localStorage.getItem("sys_lang") || "en";
+  const sysLang = localStorage.getItem("sys_lang") || "vn";
   const [currTime, setCurrTime] = useState(new Date().toLocaleTimeString());
   const { hardwareStatus } = useSelector((state) => state.systemStatus);
   const [connectionStatus, setConnectionStatus] = useState("idle");
@@ -93,7 +93,7 @@ const HeaderComponent = ({ title, icon, check_health }) => {
   const readActiveHost = () => {
     try {
       const stored = JSON.parse(localStorage.getItem("activeHost") || "{}");
-
+      
       if (!stored.host) return null;
 
       return {

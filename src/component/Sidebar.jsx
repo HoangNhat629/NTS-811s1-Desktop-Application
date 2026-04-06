@@ -255,7 +255,7 @@ export const Sidebar = () => {
         dispatch(getCommonParamsFunc()).unwrap(),
         dispatch(getChannelTableFunc()).unwrap(),
       ]);
-
+      
     const exportPayload = formatExportDataHelper({
       generalConfiguration: commonParams,
       frequencyTable: allFrequencyTable,
@@ -510,6 +510,7 @@ export const Sidebar = () => {
           onDelete={deleteHost}
           sessions={sessions}
           activeSession={activeSession}
+          setConfirmDialog={setConfirmDialog}
         />
       )}
       <SaveAllProgress />
@@ -604,7 +605,12 @@ export const Sidebar = () => {
                 onClick={async () => {
                   const editingData = getEditingData();
                   setShowModal(true);
-                  if (!connected) {
+                  if (
+                    !connected &&
+                    editingData.allCryptoTable != null &&
+                    editingData.channelParameters?.length > 0 &&
+                    editingData.frequencyTable?.length > 0
+                  ) {
                     await electronAPI.createFileDraft(editingData);
                   }
                 }}

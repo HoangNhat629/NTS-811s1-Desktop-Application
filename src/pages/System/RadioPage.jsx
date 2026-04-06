@@ -27,6 +27,8 @@ import { useSaveAll } from "../../context/SaveAllContext";
 import { useOutletDisable } from "../../context/OutletDisableContext";
 import { useEditingExport } from "../../context/EditingExportContext";
 import {
+  convertFromHz,
+  convertToHz,
   readFileDraft,
   sleep,
   validateChannelParams,
@@ -184,8 +186,8 @@ export const RadioPage = () => {
       { value: 60, label: "60s" },
     ],
     attribute: [
-      { value: 0, label: "SLAVE" },
-      { value: 1, label: "MASTER" },
+      { value: 0, label: t("slave") },
+      { value: 1, label: t("master") },
     ],
     voiceTestMode: [
       { value: 0, label: "NONE" },
@@ -447,10 +449,11 @@ export const RadioPage = () => {
         num_chan: channelsParamters.length,
         channel_tbl: channelsParamters.map((ch, idx) => ({
           ...ch,
+          u32FixedFreq: convertToHz(ch.u32FixedFreq, "MHz"),
           u8Channel: ch.u8Channel ?? idx,
         })),
       };
-
+      
       await dispatch(setChannelTableFunc(payload)).unwrap();
       setConfirmDialog({
         show: true,
@@ -695,13 +698,13 @@ export const RadioPage = () => {
                     onChange={handleGeneralChange}
                     options={SELECT_FIELD_CONFIGS.attribute}
                   />
-                  <CheckboxField
+                  {/* <CheckboxField
                     label={t("Remote")}
                     id="u8Remote"
                     name="u8Remote"
                     checked={generalData.u8Remote}
                     onChange={handleGeneralChange}
-                  />
+                  /> */}
                   <CheckboxField
                     label={t("Whisper")}
                     id="u8Whisper"
@@ -913,6 +916,7 @@ export const RadioPage = () => {
                           <td>
                             <InputChannelParameters
                               value={ch.u32FixedFreq}
+                              decimal
                               onChange={(e) =>
                                 handleChannelParametersChange(
                                   ch.__originIndex,

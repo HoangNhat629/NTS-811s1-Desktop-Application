@@ -16,12 +16,14 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import {
   buildSaveSummaryMessageHelper,
+  convertToHz,
   getBandFromFreqHelper,
   isValidFrequencyHelper,
   normalizeFrequencyHelper,
+  readFileDraft,
+  round,
   sleep,
   validateFreqBandHelper,
-  readFileDraft,
 } from "../../helper/settingHelper";
 import { BAND, step_min } from "../../constants/validFreq";
 import { useDefaultDataMode } from "../../hooks/useDefaultDataMode";
@@ -43,6 +45,7 @@ export const FREQPage = () => {
   const { t } = useTranslation();
 
   const cacheRef = useRef({});
+  const draftHydratedRef = useRef(false);
 
   const [currentTableData, setCurrentTableData] = useState([]);
   const [currentTableMeta, setCurrentTableMeta] = useState(null);
@@ -92,31 +95,93 @@ export const FREQPage = () => {
     "frequencyTable"
   );
 
+  const calculateFreqTableMeta = useCallback((freqs) => {
+    if (!freqs || freqs.length === 0) {
+      return { freq_min: 0, freq_max: 0, step_min: 0 };
+    }
+
+    const freqValues = freqs.map((f) => Number(f) || 0);
+    const minFreq = Math.min(...freqValues);
+    const maxFreq = Math.max(...freqValues);
+
+    let stepMin = Infinity;
+    for (let i = 1; i < freqValues.length; i++) {
+      const diff = round(Math.abs(freqValues[i] - freqValues[i - 1]));
+      if (diff > 0 && diff < stepMin) {
+        stepMin = diff;
+      }
+    }
+    stepMin = stepMin === Infinity ? 0 : stepMin;
+
+    return {
+      freq_min: minFreq,
+      freq_max: maxFreq,
+      step_min: stepMin,
+    };
+  }, []);
+
+  const hydrateDraftCache = useCallback(async () => {
+    if (draftHydratedRef.current) return;
+
+    try {
+      const draftFile = await readFileDraft();
+
+      if (draftFile?.isExist && draftFile?.data?.frequencyTable) {
+        Object.entries(draftFile.data.frequencyTable).forEach(
+          ([tableId, table]) => {
+            const formattedFreqs = table.freqs.map((freq, idx) => ({
+              idx,
+              frequency: freq,
+            }));
+            const freqValues = formattedFreqs.map((f) => f.frequency);
+            const meta = calculateFreqTableMeta(freqValues);
+            cacheRef.current[tableId] = {
+              source: "draft",
+              data: formattedFreqs,
+              freq_min: meta.freq_min,
+              freq_max: meta.freq_max,
+              step_min: meta.step_min,
+              cfg_freq: meta.freq_min,
+              cfg_step: meta.step_min,
+              isGenerated: false,
+            };
+          }
+        );
+      }
+    } catch (e) {
+      console.error("Draft hydrate failed", e);
+    }
+
+    draftHydratedRef.current = true;
+  }, [calculateFreqTableMeta]);
+
   const loadTableData = useCallback(
     async (tableId) => {
-      if (cacheRef.current[tableId]) {
-        const cached = cacheRef.current[tableId];
-        setCurrentTableData(cached.data);
-        setCurrentTableMeta({
-          freq_min: cached.freq_min,
-          freq_max: cached.freq_max,
-          step_min: cached.step_min,
-        });
-        setCurrentTableSource(cached.source);
-        setCfgFreq(cached.cfg_freq ?? 0);
-        setCfgStep(cached.cfg_step ?? 0);
-        setErrorGen({ isHas: false, message: "" });
-
-        setIsGenerate(cached.isGenerated ?? false);
-        return;
-      }
-
-      if (shouldSkipApiCall) return;
-
-      setLoadingTableId(tableId);
-      setHasErr(false);
-
       try {
+        await hydrateDraftCache();
+
+        if (cacheRef.current[tableId]) {
+          const cached = cacheRef.current[tableId];
+          setCurrentTableData(cached.data);
+          setCurrentTableMeta({
+            freq_min: cached.freq_min,
+            freq_max: cached.freq_max,
+            step_min: cached.step_min,
+          });
+          setCurrentTableSource(cached.source);
+          setCfgFreq(cached.cfg_freq ?? 0);
+          setCfgStep(cached.cfg_step ?? 0);
+          setErrorGen({ isHas: false, message: "" });
+
+          setIsGenerate(cached.isGenerated ?? false);
+          return;
+        }
+
+        if (shouldSkipApiCall) return;
+
+        setLoadingTableId(tableId);
+        setHasErr(false);
+
         const dataSet = { tbl_id: tableId };
         const res = await dispatch(getHopTableFunc(dataSet)).unwrap();
 
@@ -161,8 +226,9 @@ export const FREQPage = () => {
 
   const parsedFrequencies = useMemo(() => {
     if (!currentTableData || currentTableData.length === 0) return [];
+
     return currentTableData.map((item) =>
-      Number(String(item?.frequency || "").replace(/\D/g, ""))
+      Number(String(item?.frequency || "").replace(/[^\d.]/g, ""))
     );
   }, [currentTableData]);
 
@@ -172,27 +238,6 @@ export const FREQPage = () => {
     );
     return bandSet.size > 1;
   }, [parsedFrequencies]);
-
-    // useEffect(() => {
-    //   const loadDraft = async () => {
-    //     const draftFile = await readFileDraft();
-    //     if (draftFile.isExist && draftFile.data && draftFile.data.frequencyTable) {
-    //       Object.keys(draftFile.data.frequencyTable).forEach((tableId) => {
-    //         cacheRef.current[tableId] = {
-    //           source: "draft",
-    //           data: draftFile.data.frequencyTable[tableId],
-    //         };
-    //       });
-    //       if (cacheRef.current[selectedTable]) {
-    //         setCurrentTableData(cacheRef.current[selectedTable].data);
-    //         setCurrentTableSource("draft");
-    //         const meta = calculateFreqTableMeta(cacheRef.current[selectedTable].data);
-    //         setCurrentTableMeta(meta);
-    //       }
-    //     }
-    //   };
-    //   loadDraft();
-    // }, []);
 
   useEffect(() => {
     loadTableData(selectedTable);
@@ -211,7 +256,7 @@ export const FREQPage = () => {
     if (firstInvalidIndex !== -1) {
       setErrorGen({
         isHas: true,
-        message: t("Invalid frequency at index {{idx}}: {{freq}} Hz", {
+        message: t("Invalid frequency at index {{idx}}: {{freq}} MHz", {
           idx: firstInvalidIndex,
           freq: parsedFrequencies[firstInvalidIndex] || 0,
         }),
@@ -219,31 +264,6 @@ export const FREQPage = () => {
       return;
     }
   }, [parsedFrequencies, t]);
-
-  const calculateFreqTableMeta = useCallback((freqs) => {
-    if (!freqs || freqs.length === 0) {
-      return { freq_min: 0, freq_max: 0, step_min: 0 };
-    }
-
-    const freqValues = freqs.map((f) => Number(f) || 0);
-    const minFreq = Math.min(...freqValues);
-    const maxFreq = Math.max(...freqValues);
-
-    let stepMin = Infinity;
-    for (let i = 1; i < freqValues.length; i++) {
-      const diff = Math.abs(freqValues[i] - freqValues[i - 1]);
-      if (diff > 0 && diff < stepMin) {
-        stepMin = diff;
-      }
-    }
-    stepMin = stepMin === Infinity ? 0 : stepMin;
-
-    return {
-      freq_min: minFreq,
-      freq_max: maxFreq,
-      step_min: stepMin,
-    };
-  }, []);
 
   useEffect(() => {
     if (shouldSkipApiCall && defaultValue) {
@@ -321,13 +341,15 @@ export const FREQPage = () => {
 
   const handleFrequencyChange = useCallback(
     (dataIdx, newValue) => {
+      if (!/^\d{0,3}(\.\d{0,3})?$/.test(newValue)) return;
+
       setErrorGen({ isHas: false, message: "" });
 
       setCurrentTableData((prev) => {
         const newData = [...prev];
         newData[dataIdx] = {
           idx: dataIdx,
-          frequency: Number(newValue),
+          frequency: newValue,
         };
         if (cacheRef.current[selectedTable]) {
           cacheRef.current[selectedTable] = {
@@ -342,52 +364,72 @@ export const FREQPage = () => {
     [selectedTable]
   );
 
+  const handleFrequencyBlur = useCallback((idx, value) => {
+    setCurrentTableData((prev) =>
+      prev.map((item, i) =>
+        i === idx
+          ? {
+              ...item,
+              frequency:
+                value === "" || isNaN(Number(value)) ? 0 : Number(value),
+            }
+          : item
+      )
+    );
+  }, []);
+
   const SubTableMemo = useMemo(
     () =>
-      memo(({ normalized, isLoading, onFrequencyChange }) => (
-        <div className="mb-4">
-          <div className="table-responsive">
-            <table className="table table-bordered table-sm table_freq">
-              <thead className="table-light">
-                <tr>
-                  <th>Idx</th>
-                  {normalized.map((item, index) => (
-                    <th key={index} style={{ width: "85px" }}>
-                      {item.idx}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td
-                    className="table-light"
-                    style={{
-                      verticalAlign: "middle",
-                      fontSize: "clamp(12px, 0.78vw, 14px)",
-                    }}
-                  >
-                    Frequency (Hz)
-                  </td>
-                  {normalized.map((item) => (
-                    <td key={item.idx} style={{ width: "90px" }}>
-                      <input
-                        type="text"
-                        value={item.frequency}
-                        className="form-control form-control-sm text-center w-100"
-                        onChange={(e) =>
-                          onFrequencyChange(item.idx, e.target.value)
-                        }
-                        disabled={isLoading}
-                      />
+      memo(({ normalized, isLoading, onFrequencyChange }) => {
+        const { t } = useTranslation();
+        return (
+          <div className="mb-4">
+            <div className="table-responsive">
+              <table className="table table-bordered table-sm table_freq">
+                <thead className="table-light">
+                  <tr>
+                    <th>Idx</th>
+                    {normalized.map((item, index) => (
+                      <th key={index} style={{ width: "85px" }}>
+                        {item.idx}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td
+                      className="table-light"
+                      style={{
+                        verticalAlign: "middle",
+                        fontSize: "clamp(12px, 0.78vw, 14px)",
+                      }}
+                    >
+                      {t("frequency")} (MHz)
                     </td>
-                  ))}
-                </tr>
-              </tbody>
-            </table>
+                    {normalized.map((item) => (
+                      <td key={item.idx} style={{ width: "90px" }}>
+                        <input
+                          type="text"
+                          value={item.frequency}
+                          className="form-control form-control-sm text-center w-100"
+                          onChange={(e) =>
+                            onFrequencyChange(item.idx, e.target.value)
+                          }
+                          onBlur={(e) =>
+                            handleFrequencyBlur(item.idx, e.target.value)
+                          }
+                          disabled={isLoading}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      )),
+        );
+      }),
     []
   );
 
@@ -438,7 +480,7 @@ export const FREQPage = () => {
     }
 
     const freqStart = Number(
-      String(currentTableData?.[0]?.frequency ?? 0).replace(" Hz", "")
+      String(currentTableData?.[0]?.frequency ?? 0).replace(" MHz", "")
     );
 
     const isFreqValid =
@@ -447,15 +489,23 @@ export const FREQPage = () => {
 
     const data = {
       tbl_id: selectedTable,
-      freq_start: freqStart,
-      freq_step:
+      freq_start: convertToHz(freqStart, "MHz"),
+      freq_step: convertToHz(
         isGenerate && isFreqValid ? cfgStep : currentTableMeta.step_min,
-      num_freqs: 256,
-      freqs: currentTableData.map(
-        (item) => Number(String(item?.frequency ?? 0).replace(" Hz", "")) || 0
+        "MHz"
       ),
+      num_freqs: 256,
+      freqs:
+        currentTableData.map((item) =>
+          convertToHz(
+            Number(String(item?.frequency ?? 0).replace(" MHz", "")),
+            "MHz"
+          )
+        ) || 0,
     };
+    
     setLoadingTableId(selectedTable);
+
     try {
       await dispatch(setHopTableFunc(data)).unwrap();
 
@@ -613,16 +663,27 @@ export const FREQPage = () => {
     await loadTableData(selectedTable);
   };
 
-  const handleNumericInput = useCallback(
-    (setter, max = null) =>
-      (e) => {
-        const value = e.target.value;
-        if (/^\d*$/.test(value)) {
-          const num = Number(value);
-          setter(max !== null ? Math.min(num, max) : num);
-          setIsGenerate(false);
-        }
-      },
+  const handleChangeInput = useCallback(
+    (setter) => (e) => {
+      const value = e.target.value;
+      if (/^\d{0,3}(\.\d{0,3})?$/.test(value)) {
+        setter(value);
+        setIsGenerate(false);
+      }
+    },
+    []
+  );
+
+  const handleInputBlur = useCallback(
+    (value, setter) => () => {
+      let num = Number(value);
+
+      if (value === "" || Number.isNaN(num)) {
+        num = 0;
+      }
+
+      setter(num);
+    },
     []
   );
 
@@ -744,6 +805,7 @@ export const FREQPage = () => {
       const saveOneTable = async (tblId, table) => {
         try {
           const payload = buildPayload(tblId, table);
+          console.log(payload);
           await dispatch(setHopTableFunc(payload)).unwrap();
           success(tblId);
         } catch (err) {
@@ -890,7 +952,7 @@ export const FREQPage = () => {
                         }}
                         disabled={isLoading}
                       >
-                        <option value="all">All (0–255)</option>
+                        <option value="all">{t("all")} (0–255)</option>
                         <option value="range">{t("custom_range")}</option>
                       </select>
                       {genRangeType === "range" && (
@@ -954,7 +1016,7 @@ export const FREQPage = () => {
                         htmlFor="cfg_freq"
                         className="me-2 mb-0 tooltip-container"
                       >
-                        {t("config_freq")} (Hz):
+                        {t("config_freq")} (MHz):
                         <span className="tooltip-text">
                           {t("tooltipConfigFreq")}
                         </span>
@@ -965,7 +1027,8 @@ export const FREQPage = () => {
                         className="form-control form-control-sm"
                         style={{ width: "120px" }}
                         value={cfgFreq}
-                        onChange={handleNumericInput(setCfgFreq)}
+                        onChange={handleChangeInput(setCfgFreq)}
+                        onBlur={handleInputBlur(cfgFreq, setCfgFreq)}
                         maxLength={10}
                         disabled={isLoading}
                       />
@@ -976,7 +1039,7 @@ export const FREQPage = () => {
                         htmlFor="cfg_step"
                         className="me-2 mb-0 tooltip-container"
                       >
-                        {t("config_step")} (Hz):
+                        {t("config_step")} (MHz):
                         <span className="tooltip-text">
                           {t("tooltipConfigStep")}
                         </span>
@@ -987,7 +1050,8 @@ export const FREQPage = () => {
                         className="form-control form-control-sm"
                         style={{ width: "120px" }}
                         value={cfgStep}
-                        onChange={handleNumericInput(setCfgStep)}
+                        onChange={handleChangeInput(setCfgStep)}
+                        onBlur={handleInputBlur(cfgStep, setCfgStep)}
                         maxLength={10}
                         disabled={isLoading}
                       />
@@ -1021,7 +1085,7 @@ export const FREQPage = () => {
                             className="m-0 p-0"
                             style={{ fontSize: "clamp(12px, 0.78vw, 14px)" }}
                           >
-                            Min: {frequencyInfo.min} Hz
+                            Min: {frequencyInfo.min} MHz
                           </p>
                           <span className="tooltip-text">
                             {t("tooltipMinFreq")}
@@ -1032,7 +1096,7 @@ export const FREQPage = () => {
                             className="m-0 p-0"
                             style={{ fontSize: "clamp(12px, 0.78vw, 14px)" }}
                           >
-                            Max: {frequencyInfo.max} Hz
+                            Max: {frequencyInfo.max} MHz
                           </p>
                           <span className="tooltip-text">
                             {t("tooltipMaxFreq")}
@@ -1043,7 +1107,7 @@ export const FREQPage = () => {
                             className="m-0 p-0"
                             style={{ fontSize: "clamp(12px, 0.78vw, 14px)" }}
                           >
-                            Step: {frequencyInfo.step} Hz
+                            {t("step")}: {frequencyInfo.step} MHz
                           </p>
                           <span className="tooltip-text">
                             {t("tooltipSmallestStep")}

@@ -1,3 +1,5 @@
+import { convertToHz } from "../helper/settingHelper";
+
 export const CheckboxField = ({ label, id, name, checked, onChange }) => (
   <div className="d-flex justify-content-between w-100 align-items-center mb-1 mt-2">
     <label htmlFor={id} className="px-2">
@@ -67,23 +69,39 @@ export const InputChannelParameters = ({
   onChange,
   isDisabled = false,
   max = null,
+  decimal = false,
 }) => {
   const handleChange = (e) => {
-    const v = e.target.value;
+    let v = e.target.value;
+
+    if (decimal) {
+      if (/^\d{0,3}(\.\d{0,3})?$/.test(v)) {
+        onChange(v);
+      }
+      return;
+    }
+
     if (/^\d*$/.test(v)) {
-      const num = v === "" ? 0 : Number(v);
-      onChange(num);
+      onChange(v);
     }
   };
 
+  const handleBlur = () => {
+    if (value === "" || value === null) {
+      onChange(0);
+    }
+    
+    onChange(Number(value));
+  };
   return (
     <input
       type="text"
       className="form-control"
-      value={value ?? 0}
+      value={value ?? ""}
       maxLength={max}
       onChange={handleChange}
       disabled={isDisabled}
+      onBlur={handleBlur}
     />
   );
 };

@@ -3,6 +3,7 @@ import {
   VHF_UHF_BOUNDARY_MHZ,
   BAND,
   validFreqRange,
+  UNIT_MULTIPLIER,
 } from "../constants/validFreq";
 import { electronAPI } from "../tauri-shim";
 
@@ -224,7 +225,7 @@ export const parseFreqTableFromXmlHelper = async () => {
     freqTablesXml.forEach((table) => {
       const tableNumber = table.getAttribute("tableNumber");
       const fvals = Array.from(table.querySelectorAll("fval")).map(
-        (fval) => parseInt(fval.textContent, 10) * 1000
+        (fval) => parseInt(fval.textContent, 10) / 1000
       );
 
       if (fvals.length > 0) {
@@ -383,13 +384,16 @@ export const parseChannelParametersFromXmlHelper = async () => {
         u8Deskey: getInt(channelNode, "key_nhay_tan"),
         u8HoppingTable: getInt(channelNode, "  bang_nhay_tan"),
 
-        u32FixedFreq: getInt(channelNode, "tan_so_co_dinh"),
+        u32FixedFreq: convertFromHz(
+          getInt(channelNode, "tan_so_co_dinh"),
+          "MHz"
+        ),
         u8NetAddr: getInt(channelNode, "dia_chi_mang"),
 
         u8Band: getInt(channelNode, "dai_tan"),
         u8DataContent: 0,
-        u32FreqMin: 30000000,
-        u32FreqMax: 512000000,
+        u32FreqMin: 30,
+        u32FreqMax: 512,
         u32ManetID: 1,
         u32ManetOLSR: 0,
       };
@@ -413,7 +417,7 @@ export const formatTableHelper = (tables) => {
 };
 
 export const normalizeFrequencyHelper = (val) => {
-  if (typeof val === "number") return val;
+  if (typeof val === "number") return convertToHz(val, "MHz");
   if (typeof val === "string") {
     return Number(val.replace(/\D/g, "")) || 0;
   }
@@ -513,9 +517,14 @@ export const parseImportedDataHelper = (importedData) => {
       }
       return Number(val).toString(16).toUpperCase().padStart(len, "0");
     };
-
     const frequencyTable = Array.isArray(importedData.frequencyTable)
-      ? importedData.frequencyTable
+      ? importedData.frequencyTable.map((freq) => ({
+          ...freq,
+          freq_min: convertFromHz(freq.freq_min, "MHz"),
+          freq_max: convertFromHz(freq.freq_max, "MHz"),
+          step_min: convertFromHz(freq.step_min, "MHz"),
+          freqs: freq.freqs.map((item) => convertFromHz(item, "MHz")),
+        }))
       : [];
 
     const cryptoTable = {};
@@ -540,7 +549,11 @@ export const parseImportedDataHelper = (importedData) => {
       generalConfiguration: importedData.generalConfiguration || {},
       frequencyTable,
       cryptoTable,
-      channelParameters: importedData.channelParameters?.channel_tbl || [],
+      channelParameters:
+        importedData.channelParameters?.channel_tbl.map((ch) => ({
+          ...ch,
+          u32FixedFreq: convertFromHz(ch.u32FixedFreq, "MHz"),
+        })) || [],
     };
   } catch (err) {
     console.error("Error parsing imported data:", err);
@@ -637,49 +650,42 @@ export const validateChannelParams = (channels, t) => {
 
   channels.forEach((ch, idx) => {
     const channelNumber = ch.u8Channel ?? idx;
-    const freq = ch.u32FixedFreq;
-    const band = ch.u8Band;
+    const { u32FixedFreq: freq, u8Band: band, u8NetAddr: netAddr } = ch;
 
-    if (ch.u8NetAddr < 0 || ch.u8NetAddr > 127) {
-      errors.push({
-        condition: true,
-        message: `${t(
-          "network_address_out_of_range"
-        )}: Channel ${channelNumber} (${ch.u8NetAddr})`,
-      });
-    }
-
-    if (
-      typeof freq === "number" &&
-      !(freq >= validFreqRange.min && freq <= validFreqRange.max)
-    ) {
-      errors.push({
-        condition: true,
-        message: `${t(
-          "frequency_out_of_range"
-        )}: Channel ${channelNumber} (${freq})`,
-      });
-    }
-
-    if (typeof freq === "number") {
-      if (band === 0 && freq > VHF_UHF_BOUNDARY_MHZ) {
+    const pushError = (condition, message) => {
+      if (condition) {
         errors.push({
           condition: true,
-          message: `${t(
-            "frequency_band_mismatch"
-          )}: Channel ${channelNumber} (VHF but ${freq})`,
+          message,
         });
       }
+    };
 
-      if (band === 1 && freq <= VHF_UHF_BOUNDARY_MHZ) {
-        errors.push({
-          condition: true,
-          message: `${t(
-            "frequency_band_mismatch"
-          )}: Channel ${channelNumber} (UHF but ${freq})`,
-        });
-      }
-    }
+    pushError(
+      netAddr < 0 || netAddr > 127,
+      `${t(
+        "network_address_out_of_range"
+      )}: Channel ${channelNumber} (${netAddr})`
+    );
+
+    pushError(
+      freq < validFreqRange.min || freq > validFreqRange.max,
+      `${t("frequency_out_of_range")}: Channel ${channelNumber} (${freq})`
+    );
+
+    pushError(
+      band === 0 && freq > VHF_UHF_BOUNDARY_MHZ,
+      `${t(
+        "frequency_band_mismatch"
+      )}: Channel ${channelNumber} (VHF but ${freq})`
+    );
+
+    pushError(
+      band === 1 && freq <= VHF_UHF_BOUNDARY_MHZ,
+      `${t(
+        "frequency_band_mismatch"
+      )}: Channel ${channelNumber} (UHF but ${freq})`
+    );
   });
 
   return errors;
@@ -711,13 +717,24 @@ export const exportEditingFileHelper = (editingData) => {
   try {
     const payload = {
       generalConfiguration: editingData?.generalConfiguration || null,
-      frequencyTable: editingData?.frequencyTable || [],
+      frequencyTable:
+        editingData?.frequencyTable.map((freq) => ({
+          ...freq,
+          freq_min: convertToHz(freq.freq_min, "MHz"),
+          freq_max: convertToHz(freq.freq_max, "MHz"),
+          step_min: convertToHz(freq.step_min, "MHz"),
+          freqs: freq.freqs.map((item) => convertToHz(item, "MHz")),
+        })) || [],
       cryptoTable: convertCryptoTable(editingData?.allCryptoTable),
       channelParameters: {
-        channel_tbl: editingData?.channelParameters || null,
+        channel_tbl:
+          editingData?.channelParameters.map((ch) => ({
+            ...ch,
+            u32FixedFreq: convertToHz(ch.u32FixedFreq, "MHz"),
+          })) || [],
       },
     };
-
+    console.log(payload);
     // Export as raw JSON file
     const jsonString = JSON.stringify(payload, null, 2);
     const blob = new Blob([jsonString], { type: "application/json" });
@@ -740,3 +757,25 @@ export const exportEditingFileHelper = (editingData) => {
 };
 
 export const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+
+/**
+ * Handle convert Hz, Mhz, KHz
+ */
+export const convertToHz = (freq, unit = "Hz") => {
+  const value = Number(freq);
+  if (Number.isNaN(value)) return 0;
+
+  return round(value * (UNIT_MULTIPLIER[unit] || 1), 6);
+};
+
+export const convertFromHz = (freq, unit = "Hz") => {
+  const value = Number(freq);
+  if (Number.isNaN(value)) return 0;
+
+  return round(value / (UNIT_MULTIPLIER[unit] || 1), 6);
+};
+
+export const round = (num, precision = 6) => {
+  const factor = 10 ** precision;
+  return Math.round((num + Number.EPSILON) * factor) / factor;
+};

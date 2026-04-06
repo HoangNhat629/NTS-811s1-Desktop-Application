@@ -1,7 +1,9 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { useNavigate } from "react-router-dom";
@@ -14,57 +16,58 @@ const ConnectionContext = createContext(null);
 export const ConnectionProvider = ({ children }) => {
   const navigate = useNavigate();
 
+  const lastOnlineRef = useRef(new Map());
+  const activeSessionRef = useRef(null);
+
   const [sessions, setSessions] = useState([]);
   const [activeSession, setActiveSession] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [shouldNavigate, setShouldNavigate] = useState(null);
 
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("recentSessions") || "[]");
-    const norm = saved.map((s) => ({
-      host: s.host,
-      port: s.port,
-      online: typeof s.online !== "undefined" ? s.online : undefined,
-      lastChecked: s.lastChecked || null,
-      status: s.status || "idle",
-    }));
-    setSessions(norm);
+    activeSessionRef.current = activeSession;
+  }, [activeSession]);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("recentSessions") || "[]");
+
+      setSessions(
+        saved.map((s) => ({
+          host: s.host,
+          port: s.port,
+          online: s.online,
+          lastChecked: s.lastChecked || null,
+          status: s.status || "idle",
+        }))
+      );
+    } catch {}
+
+    try {
+      const active = JSON.parse(localStorage.getItem("activeHost") || "null");
+
+      if (active?.host) {
+        setActiveSession(active);
+      }
+    } catch {}
   }, []);
 
   useEffect(() => {
     const handler = (data) => {
-      console.log("Received ping:status event:", data);
+      const key = `${data.host}:${data.port}`;
+      const wasOnline = lastOnlineRef.current.get(key);
+      const isOnline = data.online;
+
+      lastOnlineRef.current.set(key, isOnline);
+
       setSessions((prev) => {
         const next = prev.map((s) => {
-          const sPort = Number(s.port);
-          const dataPort = Number(data.port);
-
-          if (s.host === data.host && sPort === dataPort) {
-            console.log(
-              `Updating session ${s.host}:${sPort} - online: ${data.online}`
-            );
-
-            try {
-              const stored = JSON.parse(
-                localStorage.getItem("activeHost") || "{}"
-              );
-
-              if (stored.host) {
-                localStorage.setItem(
-                  "activeHost",
-                  JSON.stringify({
-                    ...stored,
-                    status: data.online ? "online" : "offline",
-                  })
-                );
-              }
-            } catch {}
-
+          if (s.host === data.host && Number(s.port) === Number(data.port)) {
             return {
               ...s,
-              online: data.online,
+              online: isOnline,
               lastChecked: data.timestamp,
-              status: data.online ? "online" : "offline",
+              status: isOnline ? "online" : "offline",
             };
           }
           return s;
@@ -74,13 +77,33 @@ export const ConnectionProvider = ({ children }) => {
         return next;
       });
 
-      if (
-        data.online &&
-        activeSession &&
-        activeSession.host === data.host &&
-        Number(activeSession.port) === Number(data.port)
-      ) {
-        console.log("Navigating to settings page");
+      try {
+        const stored = JSON.parse(localStorage.getItem("activeHost") || "null");
+
+        if (
+          stored &&
+          stored.host === data.host &&
+          Number(stored.port) === Number(data.port)
+        ) {
+          localStorage.setItem(
+            "activeHost",
+            JSON.stringify({
+              ...stored,
+              status: isOnline ? "online" : "offline",
+            })
+          );
+        }
+      } catch {}
+
+      const active = activeSessionRef.current;
+      if (!active) return;
+
+      const isActive =
+        active.host === data.host && Number(active.port) === Number(data.port);
+
+      if (!isActive) return;
+
+      if (isOnline && !wasOnline) {
         setShouldNavigate({
           host: data.host,
           port: data.port,
@@ -88,13 +111,10 @@ export const ConnectionProvider = ({ children }) => {
       }
     };
 
-    console.log("Registering ping:status listener");
-    electronAPI.ipcRenderer.on("ping:status", handler);
-    return () => {
-      console.log("Removing ping:status listener");
-      electronAPI.ipcRenderer.removeListener("ping:status", handler);
-    };
-  }, [activeSession]);
+    electronAPI?.ipcRenderer?.on("ping:status", handler);
+    return () =>
+      electronAPI?.ipcRenderer?.removeListener("ping:status", handler);
+  }, []);
 
   useEffect(() => {
     if (!shouldNavigate) return;
@@ -102,11 +122,8 @@ export const ConnectionProvider = ({ children }) => {
     const { host, port } = shouldNavigate;
     const url = `http://${host}:${port}`;
 
-    try {
-      setBaseURL(url);
-    } catch {
-      localStorage.setItem("apiBase", url);
-    }
+    setBaseURL?.(url);
+    localStorage.setItem("apiBase", url);
 
     navigate("/setting", {
       replace: true,
@@ -116,112 +133,111 @@ export const ConnectionProvider = ({ children }) => {
     setShouldNavigate(null);
   }, [shouldNavigate, navigate]);
 
-  const deleteHost = (host, port) => {
-    if (activeSession?.host === host && activeSession?.port === port) {
-      stopCurrentActive();
-    }
+  const stopCurrentActive = useCallback(() => {
+    const active = activeSessionRef.current;
+    if (!active) return;
+
+    electronAPI?.ipcRenderer?.send("ping:stop", active);
 
     setSessions((prev) => {
-      const updated = prev.filter((s) => !(s.host === host && s.port === port));
-      persistHelper(updated);
-      return updated;
-    });
-  };
-
-  const stopCurrentActive = () => {
-    if (!activeSession) return;
-    try {
-      electronAPI.ipcRenderer.send("ping:stop", {
-        host: activeSession.host,
-        port: activeSession.port,
-      });
-    } catch (e) {
-      console.error("Failed to request ping:stop for previous", e);
-    }
-
-    setSessions((prev) => {
-      const next = prev.map((s) => ({ ...s, status: "idle" }));
+      const next = prev.map((s) => ({
+        ...s,
+        status: "idle",
+        online: undefined,
+      }));
       persistHelper(next);
       return next;
     });
 
-    try {
-      localStorage.removeItem("activeHost");
-      try {
-        setBaseURL("");
-      } catch (e) {
-        localStorage.removeItem("apiBase");
-      }
-    } catch (e) {
-      // ignore (e.g., not in browser env during SSR)
-    }
+    lastOnlineRef.current.clear();
 
+    localStorage.removeItem("activeHost");
+    localStorage.removeItem("apiBase");
+
+    setBaseURL?.("");
     setActiveSession(null);
-  };
+  }, []);
 
-  const handleConnect = async (session) => {
-    const existing = sessions.find(
-      (s) => s.host === session.host && s.port === session.port
-    );
+  const deleteHost = useCallback(
+    (host, port) => {
+      const active = activeSessionRef.current;
 
-    if (existing && existing.status === "disabled") return;
+      if (active?.host === host && active?.port === port) {
+        stopCurrentActive();
+      }
 
-    if (
-      activeSession &&
-      activeSession.host === session.host &&
-      activeSession.port === session.port
-    ) {
-      stopCurrentActive();
-      setShowModal(false);
-      return;
-    }
-
-    const moved = [
-      { ...session, status: "checking", online: undefined },
-      ...sessions.filter(
-        (s) => s.host !== session.host || s.port !== session.port
-      ),
-    ];
-    const disabledOthers = moved.map((s) =>
-      s.host === session.host && s.port === session.port
-        ? s
-        : { ...s, status: "disabled" }
-    );
-
-    setSessions(disabledOthers);
-    persistHelper(disabledOthers);
-
-    setShowModal(false);
-    try {
-      console.log("Calling ping:start for:", session.host, session.port);
-      await electronAPI.ipcRenderer.send("ping:start", {
-        host: session.host,
-        port: session.port,
+      setSessions((prev) => {
+        const updated = prev.filter(
+          (s) => !(s.host === host && s.port === port)
+        );
+        persistHelper(updated);
+        return updated;
       });
-      console.log("ping:start succeeded");
-      setActiveSession({ host: session.host, port: session.port });
+    },
+    [stopCurrentActive]
+  );
+
+  const handleConnect = useCallback(
+    async (session) => {
+      const active = activeSessionRef.current;
+
+      if (
+        active &&
+        active.host === session.host &&
+        active.port === session.port
+      ) {
+        stopCurrentActive();
+        setShowModal(false);
+        return;
+      }
+
+      const checkingSession = {
+        ...session,
+        status: "checking",
+        online: undefined,
+      };
+
+      const next = [
+        checkingSession,
+        ...sessions.filter(
+          (s) => s.host !== session.host || s.port !== session.port
+        ),
+      ].map((s) =>
+        s.host === session.host && s.port === session.port
+          ? s
+          : { ...s, status: "disabled" }
+      );
+
+      setSessions(next);
+      persistHelper(next);
+      setShowModal(false);
+
       try {
+        electronAPI?.ipcRenderer?.send("ping:start", session);
+
+        setActiveSession(session);
+
         localStorage.setItem(
           "activeHost",
-          JSON.stringify({ host: session.host, port: session.port })
+          JSON.stringify({
+            ...session,
+            status: "checking",
+          })
         );
       } catch (e) {
-        // ignore (e.g., not in browser env during SSR)
+        console.error("ping:start failed", e);
       }
-    } catch (e) {
-      console.error("Failed to request ping:start", e);
-    }
-  };
+    },
+    [sessions, stopCurrentActive]
+  );
 
   return (
     <ConnectionContext.Provider
       value={{
         sessions,
         activeSession,
-
         showModal,
         setShowModal,
-
         handleConnect,
         deleteHost,
         stopCurrentActive,

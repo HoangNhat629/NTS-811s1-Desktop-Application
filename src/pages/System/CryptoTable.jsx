@@ -7,7 +7,11 @@ import {
 } from "react-icons/md";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
-import { genRandomHexHelper, sleep, readFileDraft } from "../../helper/settingHelper";
+import {
+  genRandomHexHelper,
+  readFileDraft,
+  sleep,
+} from "../../helper/settingHelper";
 import { LoadingComponent } from "../../component/LoadingComponent";
 import { toast } from "react-toastify";
 import {
@@ -40,6 +44,7 @@ export const CryptoTable = () => {
   const dispatch = useDispatch();
   const { t } = useTranslation();
   const cacheRef = useRef({});
+  const draftHydratedRef = useRef(false);
 
   const [selectedKeyType, setSelectedKeyType] = useState("aes128");
   const [isLoading, setIsLoanding] = useState(false);
@@ -64,20 +69,54 @@ export const CryptoTable = () => {
 
   const { shouldSkipApiCall, defaultValue } = useDefaultDataMode(
     () => loadCryptoTable(selectedKeyType),
-    "cryptoTable"
+    "cryptoTable",
   );
+
+  const hydrateDraftCache = useCallback(async () => {
+    if (draftHydratedRef.current) return;
+
+    try {
+      const draftFile = await readFileDraft();
+      
+      if (draftFile?.isExist && draftFile?.data?.cryptoTable) {
+        const formattedTables = [];
+
+        for (const [algo, tables] of Object.entries(
+          draftFile.data.cryptoTable,
+        )) {
+          tables.forEach(({ key }, t) =>
+            key.forEach(
+              (v, r) => (((formattedTables[t] ??= [])[r] ??= {})[algo] = v),
+            ),
+          );
+
+          cacheRef.current[algo] = {
+            source: "draft",
+            data: formattedTables,
+            isGenerated: false,
+          };
+        }
+      }
+    } catch (err) {
+      console.error("Draft hydrate failed:", err);
+    }
+
+    draftHydratedRef.current = true;
+  }, []);
 
   const loadCryptoTable = useCallback(
     async (keyType) => {
-      if (cacheRef.current[keyType]) {
-        const cached = cacheRef.current[keyType];
-        setCurrentCryptoTable(cached.data);
-        return;
-      }
-
       setIsLoanding(true);
 
       try {
+        await hydrateDraftCache();
+
+        if (cacheRef.current[keyType]) {
+          const cached = cacheRef.current[keyType];
+          setCurrentCryptoTable(cached.data);
+          return;
+        }
+
         const dataSet = {
           enc_type: ENC_TYPE_MAP[keyType],
         };
@@ -101,7 +140,7 @@ export const CryptoTable = () => {
                   .toUpperCase()
                   .padStart(KEY_LENGTH_MAP[keyType], "0"),
               }))
-            : []
+            : [],
         );
 
         cacheRef.current[keyType] = {
@@ -119,25 +158,8 @@ export const CryptoTable = () => {
         setIsLoanding(false);
       }
     },
-    [dispatch, t]
+    [dispatch, t],
   );
-
-  useEffect(() => {
-    const loadDraft = async () => {
-      const draftFile = await readFileDraft();
-      if (draftFile.isExist && draftFile.data && draftFile.data.allCryptoTable) {
-        Object.keys(draftFile.data.allCryptoTable).forEach((keyType) => {
-          cacheRef.current[keyType] = {
-            source: "draft",
-            data: draftFile.data.allCryptoTable[keyType],
-            isGenerated: false,
-          };
-        });
-        setCurrentCryptoTable(cacheRef.current[selectedKeyType]?.data || []);
-      }
-    };
-    loadDraft();
-  }, []);
 
   useEffect(() => {
     loadCryptoTable(selectedKeyType);
@@ -146,6 +168,7 @@ export const CryptoTable = () => {
   useEffect(() => {
     if (shouldSkipApiCall && defaultValue) {
       const formattedTables = [];
+
       Object.entries(defaultValue).forEach(([algo, tableList]) => {
         tableList.forEach((table, tableIdx) => {
           if (!formattedTables[tableIdx]) formattedTables[tableIdx] = [];
@@ -184,7 +207,7 @@ export const CryptoTable = () => {
             ? table.map((row) => ({
                 [keyType]: row[keyType] || "",
               }))
-            : []
+            : [],
         );
       }
     });
@@ -200,8 +223,8 @@ export const CryptoTable = () => {
       val === ""
         ? ""
         : isFrom
-        ? Math.min(Number(val), Number(otherValue))
-        : Math.max(Number(val), Number(otherValue));
+          ? Math.min(Number(val), Number(otherValue))
+          : Math.max(Number(val), Number(otherValue));
     setter(num);
   };
 
@@ -274,7 +297,7 @@ export const CryptoTable = () => {
         return newData;
       });
     },
-    [selectedKeyType]
+    [selectedKeyType],
   );
 
   const handleCryptSave = useCallback(async () => {
@@ -399,7 +422,7 @@ export const CryptoTable = () => {
                   <span
                     className={`crypto-key-badge crypto-key-${selectedKeyType}`}
                   >
-                    KEY
+                    {t("key")}
                   </span>
                 </td>
 
@@ -417,7 +440,7 @@ export const CryptoTable = () => {
                           selectedKeyType,
                           e.target.value
                             .replace(/[^0-9a-fA-F]/g, "")
-                            .toUpperCase()
+                            .toUpperCase(),
                         )
                       }
                       disabled={isLoading}
@@ -478,8 +501,8 @@ export const CryptoTable = () => {
                           value={genRangeType}
                           onChange={(e) => setGenRangeType(e.target.value)}
                         >
-                          <option value="all">All (0–9)</option>
-                          <option value="range">Range</option>
+                          <option value="all">{t("all")} (0–9)</option>
+                          <option value="range">{t("range")}</option>
                         </select>
 
                         {genRangeType === "range" && (
@@ -493,7 +516,7 @@ export const CryptoTable = () => {
                               onChange={handleRangeInput(
                                 setRangeFrom,
                                 rangeTo,
-                                true
+                                true,
                               )}
                             />
                             <span className="crypto-gen-label-arrow">→</span>
@@ -506,7 +529,7 @@ export const CryptoTable = () => {
                               onChange={handleRangeInput(
                                 setRangeTo,
                                 rangeFrom,
-                                false
+                                false,
                               )}
                             />
                           </div>
@@ -521,8 +544,8 @@ export const CryptoTable = () => {
                           value={genMode}
                           onChange={(e) => setGenMode(e.target.value)}
                         >
-                          <option value="random">{t("Random")}</option>
-                          <option value="fixed">{t("Fixed key")}</option>
+                          <option value="random">{t("random")}</option>
+                          <option value="fixed">{t("fixed_key")}</option>
                         </select>
 
                         {genMode === "fixed" && (
@@ -535,7 +558,7 @@ export const CryptoTable = () => {
                               setFixedKey(
                                 e.target.value
                                   .replace(/[^0-9a-fA-F]/g, "")
-                                  .toUpperCase()
+                                  .toUpperCase(),
                               )
                             }
                           />
@@ -608,7 +631,7 @@ export const CryptoTable = () => {
                 ) : currentCryptoTable.length > 0 ? (
                   <div className="crypt-table-container custom-scroll">
                     {currentCryptoTable.map((_, tableIdx) =>
-                      renderSubCryptoTable(tableIdx)
+                      renderSubCryptoTable(tableIdx),
                     )}
                   </div>
                 ) : (

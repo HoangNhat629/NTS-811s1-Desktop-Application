@@ -140,6 +140,7 @@ export function ConnectDeviceModal({
   onDelete,
   sessions,
   activeSession,
+  setConfirmDialog,
 }) {
   const { t } = useTranslation();
 
@@ -254,7 +255,7 @@ export function ConnectDeviceModal({
             </div>
 
             <div className="connection-column right-panel-modal w-50">
-              <h2> {t("Recent")}</h2>
+              <h2> {t("recent")}</h2>
               {sessions.length === 0 && (
                 <p className="muted">{t("no_recent_sessions")}</p>
               )}
@@ -319,7 +320,18 @@ export function ConnectDeviceModal({
                     <MdDeleteOutline
                       onClick={(e) => {
                         e.stopPropagation();
-                        onDelete(s.host, s.port);
+                        setConfirmDialog({
+                          show: true,
+                          message: t("delete_host_mess"),
+                          onConfirm: async () => {
+                            onDelete(s.host, s.port);
+                            setConfirmDialog({ show: false });
+                          },
+                          onCancel: () => {
+                            setConfirmDialog({ show: false });
+                          },
+                          showCancel: true,
+                        });
                       }}
                       className="delete-icon-btn"
                       title="Delete host"
