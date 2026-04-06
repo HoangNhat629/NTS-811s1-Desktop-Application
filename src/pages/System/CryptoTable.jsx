@@ -77,25 +77,17 @@ export const CryptoTable = () => {
 
     try {
       const draftFile = await readFileDraft();
-      
-      if (draftFile?.isExist && draftFile?.data?.cryptoTable) {
-        const formattedTables = [];
 
-        for (const [algo, tables] of Object.entries(
-          draftFile.data.cryptoTable,
-        )) {
-          tables.forEach(({ key }, t) =>
-            key.forEach(
-              (v, r) => (((formattedTables[t] ??= [])[r] ??= {})[algo] = v),
-            ),
-          );
-
-          cacheRef.current[algo] = {
-            source: "draft",
-            data: formattedTables,
-            isGenerated: false,
-          };
-        }
+      if (draftFile?.isExist && draftFile?.data?.allCryptoTable) {
+        Object.entries(draftFile.data.allCryptoTable).forEach(
+          ([keyType, table]) => {
+            cacheRef.current[keyType] = {
+              source: "draft",
+              data: table,
+              isGenerated: false,
+            };
+          },
+        );
       }
     } catch (err) {
       console.error("Draft hydrate failed:", err);
