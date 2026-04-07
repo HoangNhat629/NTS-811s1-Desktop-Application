@@ -408,7 +408,12 @@ export const RadioPage = () => {
   const loadAllChannelConfigurationData = async () => {
     try {
       const res = await dispatch(getChannelTableFunc()).unwrap();
-      setChannelsParamters(res?.channel_tbl || []);
+      setChannelsParamters(
+        res?.channel_tbl.map((ch) => ({
+          ...ch,
+          u32FixedFreq: convertFromHz(ch.u32FixedFreq, "MHz"),
+        })) || []
+      );
     } catch (err) {
       console.log(err.message || err || "An error occurred. Please try again.");
       return;
@@ -420,7 +425,7 @@ export const RadioPage = () => {
       await dispatch(setCommonParamsFunc(generalData)).unwrap();
       setConfirmDialog({
         show: true,
-        message: "General configuration updated successfully.",
+        message: t("general_config_success"),
         onConfirm: async () => {
           setConfirmDialog({ show: false });
         },
@@ -428,7 +433,7 @@ export const RadioPage = () => {
       });
     } catch (err) {
       console.log(err.message || err || "An error occurred. Please try again.");
-      toast.error("Save general configuration failed", {
+      toast.error(t("general_config_error"), {
         toastId: TOAST_ERROR_ID,
       });
       return;
@@ -453,11 +458,11 @@ export const RadioPage = () => {
           u8Channel: ch.u8Channel ?? idx,
         })),
       };
-      
+
       await dispatch(setChannelTableFunc(payload)).unwrap();
       setConfirmDialog({
         show: true,
-        message: "Channel table configuration saved successfully.",
+        message: t("channel_param_success"),
         onConfirm: async () => {
           setConfirmDialog({ show: false });
         },
@@ -465,7 +470,7 @@ export const RadioPage = () => {
       });
     } catch (err) {
       console.log(err.message || err || "An error occurred. Please try again.");
-      toast.error("Save channel parameters failed", {
+      toast.error(t("channel_param_error"), {
         toastId: TOAST_ERROR_ID,
       });
       return;
@@ -484,6 +489,7 @@ export const RadioPage = () => {
           num_chan: channelsParamters.length,
           channel_tbl: channelsParamters.map((ch, idx) => ({
             ...ch,
+            u32FixedFreq: convertToHz(ch.u32FixedFreq, "MHz"),
             u8Channel: ch.u8Channel ?? idx,
           })),
         })

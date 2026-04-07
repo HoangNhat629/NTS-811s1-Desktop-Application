@@ -304,19 +304,16 @@ export const CryptoTable = () => {
 
       await dispatch(setCryptoTableFunc({ tbl_type, tbl_data })).unwrap();
 
-      toast.success(t("successCryptSave"), {
-        toastId: TOAST_SUCCESS_ID,
-      });
       setConfirmDialog({
         show: true,
-        message: t("successCryptSave"),
+        message: t("crypto_save_success"),
         onConfirm: async () => {
           setConfirmDialog({ show: false });
         },
         showCancel: false,
       });
     } catch {
-      toast.error(t("saveCryptFailed"), {
+      toast.error(t("crypto_save_error"), {
         toastId: TOAST_ERROR_ID,
       });
     } finally {
@@ -391,7 +388,7 @@ export const CryptoTable = () => {
     return (
       <div className="crypto-subtable" key={tableIdx}>
         <div className="crypto-subtable__title">
-          {t("CryptographicTable")} #{tableIdx}
+          {t("cryptographic_table")} #{tableIdx}
         </div>
 
         <div className="table-responsive">

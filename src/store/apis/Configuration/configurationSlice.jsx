@@ -11,7 +11,7 @@ export const rebootFunc = createAsyncThunk(
     } catch (err) {
       return thunkApi.rejectWithValue(err);
     }
-  },
+  }
 );
 
 export const radioConfigFunc = createAsyncThunk(
@@ -22,7 +22,7 @@ export const radioConfigFunc = createAsyncThunk(
     } catch (err) {
       return thunkApi.rejectWithValue(err);
     }
-  },
+  }
 );
 
 export const getRadioConfigFunc = createAsyncThunk(
@@ -33,7 +33,7 @@ export const getRadioConfigFunc = createAsyncThunk(
     } catch (err) {
       return thunkApi.rejectWithValue(err);
     }
-  },
+  }
 );
 
 export const setSleepModeFunc = createAsyncThunk(
@@ -44,7 +44,7 @@ export const setSleepModeFunc = createAsyncThunk(
     } catch (err) {
       return thunkApi.rejectWithValue(err);
     }
-  },
+  }
 );
 
 export const getCommonParamsFunc = createAsyncThunk(
@@ -55,7 +55,7 @@ export const getCommonParamsFunc = createAsyncThunk(
     } catch (err) {
       return thunkApi.rejectWithValue(err);
     }
-  },
+  }
 );
 
 export const setCommonParamsFunc = createAsyncThunk(
@@ -66,7 +66,7 @@ export const setCommonParamsFunc = createAsyncThunk(
     } catch (err) {
       return thunkApi.rejectWithValue(err);
     }
-  },
+  }
 );
 
 export const getChannelParamsFunc = createAsyncThunk(
@@ -77,7 +77,7 @@ export const getChannelParamsFunc = createAsyncThunk(
     } catch (err) {
       return thunkApi.rejectWithValue(err);
     }
-  },
+  }
 );
 
 export const setChannelParamsFunc = createAsyncThunk(
@@ -88,7 +88,7 @@ export const setChannelParamsFunc = createAsyncThunk(
     } catch (err) {
       return thunkApi.rejectWithValue(err);
     }
-  },
+  }
 );
 
 export const getAllHopTableFunc = createAsyncThunk(
@@ -99,7 +99,7 @@ export const getAllHopTableFunc = createAsyncThunk(
     } catch (err) {
       return thunkApi.rejectWithValue(err);
     }
-  },
+  }
 );
 
 export const getHopTableFunc = createAsyncThunk(
@@ -110,7 +110,7 @@ export const getHopTableFunc = createAsyncThunk(
     } catch (err) {
       return thunkApi.rejectWithValue(err);
     }
-  },
+  }
 );
 
 export const setHopTableFunc = createAsyncThunk(
@@ -121,7 +121,7 @@ export const setHopTableFunc = createAsyncThunk(
     } catch (err) {
       return thunkApi.rejectWithValue(err);
     }
-  },
+  }
 );
 
 export const getAllCryptoTableFunc = createAsyncThunk(
@@ -132,7 +132,7 @@ export const getAllCryptoTableFunc = createAsyncThunk(
     } catch (err) {
       return thunkApi.rejectWithValue(err);
     }
-  },
+  }
 );
 
 export const getCryptoTableFunc = createAsyncThunk(
@@ -143,7 +143,7 @@ export const getCryptoTableFunc = createAsyncThunk(
     } catch (err) {
       return thunkApi.rejectWithValue(err);
     }
-  },
+  }
 );
 
 export const setCryptoTableFunc = createAsyncThunk(
@@ -154,7 +154,7 @@ export const setCryptoTableFunc = createAsyncThunk(
     } catch (err) {
       return thunkApi.rejectWithValue(err);
     }
-  },
+  }
 );
 
 export const getChannelTableFunc = createAsyncThunk(
@@ -165,7 +165,7 @@ export const getChannelTableFunc = createAsyncThunk(
     } catch (err) {
       return thunkApi.rejectWithValue(err);
     }
-  },
+  }
 );
 
 export const setChannelTableFunc = createAsyncThunk(
@@ -176,7 +176,7 @@ export const setChannelTableFunc = createAsyncThunk(
     } catch (err) {
       return thunkApi.rejectWithValue(err);
     }
-  },
+  }
 );
 
 const handleAsyncThunk = (builder, asyncThunk, key, mess) => {
@@ -224,18 +224,13 @@ export const configurationSlice = createSlice({
     handleAsyncThunk(builder, rebootFunc, "rebootDataProcess");
     handleAsyncThunk(builder, setSleepModeFunc, "sleepMode");
     handleAsyncThunk(builder, getCommonParamsFunc, "commonParams");
-    handleAsyncThunk(
-      builder,
-      setCommonParamsFunc,
-      null,
-      "General configuration updated successfully.",
-    );
+    handleAsyncThunk(builder, setCommonParamsFunc, null);
     handleAsyncThunk(builder, getChannelParamsFunc, "channelParams");
     handleAsyncThunk(
       builder,
       setChannelParamsFunc,
       null,
-      "Channel configuration updated successfully.",
+      "Channel configuration updated successfully."
     );
     handleAsyncThunk(builder, getAllHopTableFunc, "allHopTable");
     handleAsyncThunk(builder, getHopTableFunc, "hopTable");
@@ -244,12 +239,7 @@ export const configurationSlice = createSlice({
     handleAsyncThunk(builder, getCryptoTableFunc, "cryptoTable");
     handleAsyncThunk(builder, setCryptoTableFunc, null);
     handleAsyncThunk(builder, getChannelTableFunc, "channelTable");
-    handleAsyncThunk(
-      builder,
-      setChannelTableFunc,
-      null,
-      "Channel table configuration saved successfully.",
-    );
+    handleAsyncThunk(builder, setChannelTableFunc, null);
   },
 });
 

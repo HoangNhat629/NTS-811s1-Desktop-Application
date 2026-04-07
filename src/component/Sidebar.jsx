@@ -98,13 +98,13 @@ export const Sidebar = () => {
     {
       id: "freqTable",
       icon: MdBackupTable,
-      label: t("FreqTable").toUpperCase(),
+      label: t("freq_table").toUpperCase(),
       path: "freq",
     },
     {
       id: "crytoTable",
       icon: MdVpnKey,
-      label: t("CryptographicTable")
+      label: t("cryptographic_table")
         .replace("Cryptographic", "Crypto")
         .toUpperCase(),
       path: "crypto",
@@ -210,13 +210,11 @@ export const Sidebar = () => {
         })
       );
 
+      await electronAPI.createFileDraft(defaultPayload);
+
       toast.success(t("loadDefaultSuccess"), {
         toastId: TOAST_SUCCESS_ID,
       });
-
-      if (!connected) {
-        await electronAPI.createFileDraft(defaultPayload);
-      }
     } catch (err) {
       console.error("Error loading default configuration:", err);
       toast.error(err?.message || t("loadDefaultFailed"), {
@@ -255,7 +253,7 @@ export const Sidebar = () => {
         dispatch(getCommonParamsFunc()).unwrap(),
         dispatch(getChannelTableFunc()).unwrap(),
       ]);
-      
+
     const exportPayload = formatExportDataHelper({
       generalConfiguration: commonParams,
       frequencyTable: allFrequencyTable,
@@ -348,7 +346,7 @@ export const Sidebar = () => {
         cryptoTable: importedData.cryptoTable,
         channelParameters: importedData.channelParameters,
       });
-
+      
       activateDefaultMode(importPayload);
       enableOutlets();
 
@@ -362,8 +360,7 @@ export const Sidebar = () => {
       );
 
       if (
-        !connected &&
-        importPayload.allCryptoTable != null &&
+        importPayload.cryptoTable != null &&
         importPayload.channelParameters?.length > 0 &&
         importPayload.frequencyTable?.length > 0
       ) {

@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import {
   buildSaveSummaryMessageHelper,
+  convertFromHz,
   convertToHz,
   getBandFromFreqHelper,
   isValidFrequencyHelper,
@@ -187,17 +188,17 @@ export const FREQPage = () => {
 
         const mapped = (res?.freqs || []).map((f, idx) => ({
           idx,
-          frequency: f,
+          frequency: convertFromHz(f, "MHz"),
         }));
 
         const tableCache = {
           source: "api",
           data: mapped,
-          freq_min: res?.freq_min,
-          freq_max: res?.freq_max,
-          step_min: res?.step_min,
-          cfg_freq: res?.cfg_freq,
-          cfg_step: res?.cfg_step,
+          freq_min: convertFromHz(res?.freq_min, "MHz"),
+          freq_max: convertFromHz(res?.freq_max, "MHz"),
+          step_min: convertFromHz(res?.step_min, "MHz"),
+          cfg_freq: convertFromHz(res?.cfg_freq, "MHz"),
+          cfg_step: convertFromHz(res?.cfg_step, "MHz"),
           isGenerated: false,
         };
 
@@ -205,13 +206,13 @@ export const FREQPage = () => {
 
         setCurrentTableData(mapped);
         setCurrentTableMeta({
-          freq_min: res?.freq_min,
-          freq_max: res?.freq_max,
-          step_min: res?.step_min,
+          freq_min: convertFromHz(res?.freq_min, "MHz"),
+          freq_max: convertFromHz(res?.freq_max, "MHz"),
+          step_min: convertFromHz(res?.step_min, "MHz"),
         });
         setCurrentTableSource("api");
-        setCfgFreq(res?.cfg_freq ?? 0);
-        setCfgStep(res?.cfg_step ?? 0);
+        setCfgFreq(convertFromHz(res?.cfg_freq ?? 0, "MHz"));
+        setCfgStep(convertFromHz(res?.cfg_step ?? 0, "MHz"));
         setErrorGen({ isHas: false, message: "" });
         setIsGenerate(false);
       } catch (err) {
@@ -503,7 +504,7 @@ export const FREQPage = () => {
           )
         ) || 0,
     };
-    
+
     setLoadingTableId(selectedTable);
 
     try {
@@ -519,18 +520,14 @@ export const FREQPage = () => {
 
       setConfirmDialog({
         show: true,
-        message: t("saveSuccess"),
+        message: t("freq_config_success"),
         onConfirm: async () => {
           setConfirmDialog({ show: false });
         },
         showCancel: false,
       });
-
-      toast.success(t("saveSuccess"), {
-        toastId: TOAST_SUCCESS_ID,
-      });
     } catch (err) {
-      toast.error("Failed to save table", {
+      toast.error(t("freq_config_err"), {
         toastId: TOAST_ERROR_ID,
       });
     } finally {
@@ -796,7 +793,10 @@ export const FREQPage = () => {
         return {
           tbl_id: Number(tblId),
           freq_start: freqStart,
-          freq_step: isGenerated && isFreqValid ? cfgStep : step_min,
+          freq_step: convertToHz(
+            isGenerated && isFreqValid ? cfgStep : step_min,
+            "MHz"
+          ),
           num_freqs: data.length,
           freqs: data.map(normalizeFrequencyHelper),
         };
@@ -853,7 +853,7 @@ export const FREQPage = () => {
 
           setConfirmDialog({
             show: true,
-            message: "All selected tables have been saved successfully.",
+            message: t("all_freq_config_success"),
             onConfirm: () => setConfirmDialog({ show: false }),
             showCancel: false,
           });
@@ -861,7 +861,7 @@ export const FREQPage = () => {
       } catch (err) {
         console.error("Save selected tables crashed:", err);
 
-        toast.error(t("Failed to save all tables"), {
+        toast.error(t("all_freq_config_error"), {
           toastId: TOAST_ERROR_ID,
         });
       } finally {
@@ -1220,7 +1220,7 @@ export const FREQPage = () => {
                   }
                 >
                   <MdSave style={{ marginRight: "5px" }} size={20} />{" "}
-                  {t("saveAllFreqTables")}
+                  {t("save_all_freq_tables_button")}
                 </button>
               )}
               <button
@@ -1233,7 +1233,7 @@ export const FREQPage = () => {
                 }
               >
                 <MdSave style={{ marginRight: "5px" }} size={20} /> {t("save")}{" "}
-                {t("FreqTable")} #{selectedTable}
+                {t("freq_table")} #{selectedTable}
               </button>
             </div>
           </>

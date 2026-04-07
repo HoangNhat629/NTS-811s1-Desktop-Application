@@ -191,17 +191,38 @@ export const genRandomHexHelper = (length) =>
       .toUpperCase()
   ).join("");
 
-export const handleExportHelper = (fileContent, name) => {
-  const element = document.createElement("a");
-  element.setAttribute(
-    "href",
-    "data:text/plain;charset=utf-8," + encodeURIComponent(fileContent)
-  );
-  element.setAttribute("download", name);
-  element.style.display = "none";
-  document.body.appendChild(element);
-  element.click();
-  document.body.removeChild(element);
+export const handleExportHelper = async (fileContent, name) => {
+  try {
+    if ("showSaveFilePicker" in window) {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: name,
+        types: [
+          {
+            description: "JSON File",
+            accept: {
+              "application/json": [".json"],
+            },
+          },
+        ],
+      });
+
+      const writable = await handle.createWritable();
+      await writable.write(fileContent);
+      await writable.close();
+
+      return;
+    }
+
+    const element = document.createElement("a");
+    element.href =
+      "data:text/plain;charset=utf-8," + encodeURIComponent(fileContent);
+    element.download = name;
+    element.click();
+  } catch (err) {
+    if (err.name !== "AbortError") {
+      console.error("Export failed:", err);
+    }
+  }
 };
 
 export const parseFreqTableFromXmlHelper = async () => {
@@ -419,7 +440,8 @@ export const formatTableHelper = (tables) => {
 export const normalizeFrequencyHelper = (val) => {
   if (typeof val === "number") return convertToHz(val, "MHz");
   if (typeof val === "string") {
-    return Number(val.replace(/\D/g, "")) || 0;
+    const cleaned = val.replace(/[^0-9.]/g, "");
+    return convertToHz(parseFloat(cleaned) || 0, "MHz");
   }
   if (typeof val === "object" && val !== null) {
     return normalizeFrequencyHelper(val.frequency);
@@ -713,7 +735,7 @@ const convertCryptoTable = (allCryptoTable) => {
   });
 };
 
-export const exportEditingFileHelper = (editingData) => {
+export const exportEditingFileHelper = async (editingData) => {
   try {
     const payload = {
       generalConfiguration: editingData?.generalConfiguration || null,
@@ -734,24 +756,45 @@ export const exportEditingFileHelper = (editingData) => {
           })) || [],
       },
     };
-    console.log(payload);
-    // Export as raw JSON file
+
     const jsonString = JSON.stringify(payload, null, 2);
-    const blob = new Blob([jsonString], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `editing_config_${parseInt(
-      (Date.now() / 1000).toFixed(0)
+
+    const fileName = `editing_config_${Math.floor(
+      Date.now() / 1000
     )}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+
+    if ("showSaveFilePicker" in window) {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: fileName,
+        types: [
+          {
+            description: "JSON File",
+            accept: { "application/json": [".json"] },
+          },
+        ],
+      });
+
+      const writable = await handle.createWritable();
+      await writable.write(jsonString);
+      await writable.close();
+    } else {
+      const blob = new Blob([jsonString], {
+        type: "application/json",
+      });
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
 
     return true;
   } catch (error) {
-    console.error("Failed to export editing file:", error);
+    if (error.name !== "AbortError") {
+      console.error("Failed to export editing file:", error);
+    }
     throw error;
   }
 };

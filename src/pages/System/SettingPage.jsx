@@ -30,8 +30,8 @@ const SettingPageInner = () => {
   const flagClickRef = useRef(false);
   const titleMap = {
     radio: "RADIO",
-    freq: t("FreqTable").toUpperCase(),
-    crypto: t("CryptographicTable").toUpperCase(),
+    freq: t("freq_table").toUpperCase(),
+    crypto: t("cryptographic_table").toUpperCase(),
   };
 
   const getTitle = () => {

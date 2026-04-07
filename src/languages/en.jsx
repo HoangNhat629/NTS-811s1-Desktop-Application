@@ -1,4 +1,12 @@
 export const enVersion = {
+  general_config_success:
+    "General configuration updated successfully. Please restart your device to apply changes.",
+  general_config_error:
+    "Failed to update general configuration. Please try again.",
+  channel_param_success:
+    "Channel parameters configuration has been saved successfully. Please restart your device to apply changes.",
+  channel_param_error:
+    "An error occurred while saving channel parameters. Please try again.",
   fixed_key: "Fixed key",
   random: "Random",
   range: "Range",
@@ -51,7 +59,7 @@ export const enVersion = {
   failed_to_save_all_configurations:
     "Failed to save all configuration settings. Please try again.",
   all_configurations_saved_successfully:
-    "All configurations saved successfully!",
+    "All configurations saved successfully! Please restart your device to apply changes.",
   freq_info: "Freq Info",
   config_freq: "Config Freq",
   config_step: "Config Step",
@@ -75,16 +83,24 @@ export const enVersion = {
   messCallID: "The Call ID must be within 0 and 99",
   manet_id: "Manet ID",
   manet_olsr: "Manet OLSR",
-  saveAllSuccess: "Save all freq tables successfully",
-  saveSuccess: "Save freq table successfully",
-  saveAllFreqTables: "Save all freq tables",
+  all_freq_config_success:
+    "All frequency table configurations updated. A device restart is required to finalize the process.",
+  all_freq_config_error:
+    "Failed to save all frequency table configurations. Please try again.",
+  freq_config_success:
+    "Frequency table configuration saved successfully. Please restart the device to apply changes.",
+  freq_config_err:
+    "Failed to save frequency table configuration. Please try again.",
+  save_all_freq_tables_button: "Save All Freq Tables",
   no_data_available: "No data available",
   no_matching_channels_found: "No matching channels found",
   search_channel_number: "Search channel number",
   GenerateKey: "Generate Key",
   loadDataFailed: "Load Data Failed",
-  saveCryptFailed: "Save Cryptographic Table Failed",
-  successCryptSave: "Save Cryptographic Table Successfully",
+  crypto_save_error:
+    "Failed to save cryptographic table configuration. Please try again.",
+  crypto_save_success:
+    "Cryptographic table configuration saved successfully. Please restart your device to apply changes.",
   TableType: "Table Type",
   default: "Default",
   space: " ",
@@ -243,9 +259,9 @@ export const enVersion = {
   InvalidGatewayMess: "Invalid Gateway address. Please check and try again.",
   FrequencyTableConfiguration: "Frequency Table Configuration",
   CryptoTableConfiguration: "Cryptographic Table Configuration",
-  CryptographicTable: "Cryptographic Table",
+  cryptographic_table: "Cryptographic Table",
   ChannelParameters: "Channel Parameters",
-  FreqTable: "Freq Table",
+  freq_table: "Freq Table",
   Table: "Table",
   tooltipMinFreq:
     "The lowest frequency allowed in the current frequency table.",

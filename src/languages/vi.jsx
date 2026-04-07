@@ -1,4 +1,10 @@
 export const viVersion = {
+  general_config_success:
+    "Cập nhật cấu hình chung thành công. Vui lòng khởi động lại thiết bị để áp dụng thay đổi.",
+  general_config_error: "Cập nhật cấu hình chung thất bại. Vui lòng thử lại.",
+  channel_param_success:
+    "Cấu hình các tham số kênh đã được lưu lại thành công. Vui lòng khởi động lại thiết bị để áp dụng thay đổi.",
+  channel_param_error: "Đã xảy ra lỗi khi lưu tham số kênh. Vui lòng thử lại.",
   fixed_key: "Khóa cố định",
   random: "Ngẫu nhiên",
   range: "Phạm vi",
@@ -51,7 +57,7 @@ export const viVersion = {
   failed_to_save_all_configurations:
     "Không thể lưu tất cả các thiết lập cấu hình. Vui lòng thử lại.",
   all_configurations_saved_successfully:
-    "Tất cả cấu hình đã được lưu thành công!",
+    "Tất cả cấu hình đã được lưu thành công! Vui lòng khởi động lại thiết bị để áp dụng thay đổi.",
   freq_info: "Thông tin tần",
   config_step: "Cấu hình bước",
   config_freq: "Tần cấu hình",
@@ -76,9 +82,15 @@ export const viVersion = {
   messCallID: "ID của máy gọi phải nằm trong khoảng từ 0 đến 99",
   manet_id: "Manet ID",
   manet_olsr: "Manet OLSR",
-  saveSuccess: "Lưu Bảng Tần Số Thành Công",
-  saveAllSuccess: "Lưu Tất Cả Bảng Tần Số Thành Công",
-  saveAllFreqTables: "Lưu Tất Cả Bảng Tần Số",
+  freq_config_success:
+    "Cấu hình bảng tần số đã được lưu thành công. Vui lòng khởi động lại thiết bị để áp dụng các thay đổi.",
+  freq_config_err:
+    "Không thể lưu cấu hình bảng tần số. Vui lòng kiểm tra lại và thử lại.",
+  all_freq_config_success:
+    "Hoàn tất cập nhật cấu hình các bảng tần số. Yêu cầu khởi động lại thiết bị để hoàn tất quá trình.",
+  all_freq_config_error:
+    "Lưu tất cả cấu hình bảng tần số thất bại. Vui lòng thử lại.",
+  save_all_freq_tables_button: "Lưu Tất Cả Bảng Tần Số",
   no_data_available: "Không có dữ liệu",
   no_matching_channels_found: "Không tìm thấy kênh phù hợp",
   search_channel_number: "Tìm kiếm số kênh",
@@ -86,15 +98,16 @@ export const viVersion = {
   loadDefaultSuccess: "Tải giá trị mặc định thành công",
   ApplyTable: "Áp dụng cho bảng",
   GenerateKey: "Tạo Mã",
-  saveCryptFailed: "Lưu Bảng Mã Thất Bại",
-  successCryptSave: "Lưu Bảng Mã Thành Công",
+  crypto_save_error: "Lưu cấu hình bảng mã hóa thất bại. Vui lòng thử lại.",
+  crypto_save_success:
+    "Cấu hình bảng mã hóa đã được lưu thành công. Vui lòng khởi động lại thiết bị để áp dụng thay đổi.",
   loadDataFailed: "Tải dữ liệu thất bại",
   TableType: "Loại Bảng",
   space: " ",
   logout: "Đăng xuất",
   restart: "Khởi động lại",
   shutdown: "Ngắt Kết Nối",
-  messRestart: "Bạn Có Muốn Khởi Động Lại Thiết Bị?",
+  messRestart: "Bạn có muốn khởi động lại thiết bị?",
   confirm: "Đồng ý",
   cancel: "Hủy",
   save: "Lưu",
@@ -244,9 +257,9 @@ export const viVersion = {
   InvalidGatewayMess: "Địa chỉ Gateway không hợp lệ. Hãy kiểm tra lại.",
   FrequencyTableConfiguration: "Cấu Hình Bảng Tần",
   CryptoTableConfiguration: "Cấu Hình Bảng Mã",
-  CryptographicTable: "Bảng mã",
+  cryptographic_table: "Bảng mã",
   ChannelParameters: "Tham số kênh",
-  FreqTable: "Bảng Tần",
+  freq_table: "Bảng Tần",
   Table: "Bảng",
   tooltipMinFreq: "Tần số thấp nhất được phép trong bảng tần số hiện tại.",
   tooltipMaxFreq: "Tần số lớn nhất được phép trong bảng tần số hiện tại.",
