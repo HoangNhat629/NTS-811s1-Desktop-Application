@@ -69,7 +69,7 @@ export const CryptoTable = () => {
 
   const { shouldSkipApiCall, defaultValue } = useDefaultDataMode(
     () => loadCryptoTable(selectedKeyType),
-    "cryptoTable",
+    "cryptoTable"
   );
 
   const hydrateDraftCache = useCallback(async () => {
@@ -77,16 +77,15 @@ export const CryptoTable = () => {
 
     try {
       const draftFile = await readFileDraft();
-
-      if (draftFile?.isExist && draftFile?.data?.allCryptoTable) {
-        Object.entries(draftFile.data.allCryptoTable).forEach(
+      if (draftFile?.isExist && draftFile?.data?.cryptoTable) {
+        Object.entries(draftFile.data.cryptoTable).forEach(
           ([keyType, table]) => {
             cacheRef.current[keyType] = {
               source: "draft",
               data: table,
               isGenerated: false,
             };
-          },
+          }
         );
       }
     } catch (err) {
@@ -99,10 +98,9 @@ export const CryptoTable = () => {
   const loadCryptoTable = useCallback(
     async (keyType) => {
       setIsLoanding(true);
-
       try {
         await hydrateDraftCache();
-
+        
         if (cacheRef.current[keyType]) {
           const cached = cacheRef.current[keyType];
           setCurrentCryptoTable(cached.data);
@@ -132,7 +130,7 @@ export const CryptoTable = () => {
                   .toUpperCase()
                   .padStart(KEY_LENGTH_MAP[keyType], "0"),
               }))
-            : [],
+            : []
         );
 
         cacheRef.current[keyType] = {
@@ -150,7 +148,7 @@ export const CryptoTable = () => {
         setIsLoanding(false);
       }
     },
-    [dispatch, t],
+    [dispatch, t]
   );
 
   useEffect(() => {
@@ -199,7 +197,7 @@ export const CryptoTable = () => {
             ? table.map((row) => ({
                 [keyType]: row[keyType] || "",
               }))
-            : [],
+            : []
         );
       }
     });
@@ -215,8 +213,8 @@ export const CryptoTable = () => {
       val === ""
         ? ""
         : isFrom
-          ? Math.min(Number(val), Number(otherValue))
-          : Math.max(Number(val), Number(otherValue));
+        ? Math.min(Number(val), Number(otherValue))
+        : Math.max(Number(val), Number(otherValue));
     setter(num);
   };
 
@@ -289,7 +287,7 @@ export const CryptoTable = () => {
         return newData;
       });
     },
-    [selectedKeyType],
+    [selectedKeyType]
   );
 
   const handleCryptSave = useCallback(async () => {
@@ -429,7 +427,7 @@ export const CryptoTable = () => {
                           selectedKeyType,
                           e.target.value
                             .replace(/[^0-9a-fA-F]/g, "")
-                            .toUpperCase(),
+                            .toUpperCase()
                         )
                       }
                       disabled={isLoading}
@@ -505,7 +503,7 @@ export const CryptoTable = () => {
                               onChange={handleRangeInput(
                                 setRangeFrom,
                                 rangeTo,
-                                true,
+                                true
                               )}
                             />
                             <span className="crypto-gen-label-arrow">→</span>
@@ -518,7 +516,7 @@ export const CryptoTable = () => {
                               onChange={handleRangeInput(
                                 setRangeTo,
                                 rangeFrom,
-                                false,
+                                false
                               )}
                             />
                           </div>
@@ -547,7 +545,7 @@ export const CryptoTable = () => {
                               setFixedKey(
                                 e.target.value
                                   .replace(/[^0-9a-fA-F]/g, "")
-                                  .toUpperCase(),
+                                  .toUpperCase()
                               )
                             }
                           />
@@ -620,7 +618,7 @@ export const CryptoTable = () => {
                 ) : currentCryptoTable.length > 0 ? (
                   <div className="crypt-table-container custom-scroll">
                     {currentCryptoTable.map((_, tableIdx) =>
-                      renderSubCryptoTable(tableIdx),
+                      renderSubCryptoTable(tableIdx)
                     )}
                   </div>
                 ) : (

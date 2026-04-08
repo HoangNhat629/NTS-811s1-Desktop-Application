@@ -75,6 +75,8 @@ export const viVersion = {
   lost_connect_detail_item_2: "Kiểm tra kết nối máy chủ",
   lost_connect_detail_item_3: "Đảm bảo thiết bị đã được bật nguồn",
   lost_connect: "Mất Kết Nối",
+  continue_editing: "Tiếp tục chỉnh sửa",
+  auto_redirect_in: "Tự động chuyển hướng sau",
   lost_connect_description:
     "Không thể thiết lập kết nối với thiết bị. Vui lòng kiểm tra thiết bị đã được bật nguồn và kết nối với máy chủ đang ổn định.",
   AFHID: "AFH ID",

@@ -1,0 +1,90 @@
+/* Connection Lost Modal */
+
+.connection-lost-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+  animation: fadeIn 0.2s ease;
+}
+
+.connection-lost-modal {
+  background: var(--surface-color);
+  border: 1px solid var(--border-soft);
+  padding: 24px;
+  width: 480px;
+  max-width: calc(100% - 48px);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+  text-align: center;
+}
+
+.connection-lost-icon {
+  margin-bottom: 16px;
+}
+
+.connection-lost-modal h3 {
+  margin-top: 0;
+  color: var(--text-color-2);
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+
+.connection-lost-modal > p {
+  color: var(--text-color);
+  font-size: 14px;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.connection-lost-details {
+  background: var(--input-bg);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.connection-lost-details .detail-item {
+  color: var(--text-color);
+  font-size: 13px;
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.connection-lost-details .detail-item::before {
+  content: "•";
+  color: #dc3545;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.connection-lost-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.connection-lost-actions .btn {
+  min-width: 140px;
+}
+
+.connection-lost-timer {
+  color: var(--label-color);
+  font-size: 12px;
+  font-style: italic;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

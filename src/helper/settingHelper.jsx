@@ -40,7 +40,10 @@ export async function readFileDraft() {
     const isValid =
       draftFile &&
       typeof draftFile === "object" &&
-      Object.keys(draftFile).length > 0;
+      Object.keys(draftFile).length > 0 &&
+      draftFile?.channelParameters.length > 0 &&
+      draftFile?.frequencyTable.length > 0 &&
+      draftFile?.cryptoTable;
 
     return {
       message: isValid ? "Draft restored" : "No saved draft",
@@ -759,9 +762,7 @@ export const exportEditingFileHelper = async (editingData) => {
 
     const jsonString = JSON.stringify(payload, null, 2);
 
-    const fileName = `editing_config_${Math.floor(
-      Date.now() / 1000
-    )}.json`;
+    const fileName = `editing_config_${Math.floor(Date.now() / 1000)}.json`;
 
     if ("showSaveFilePicker" in window) {
       const handle = await window.showSaveFilePicker({

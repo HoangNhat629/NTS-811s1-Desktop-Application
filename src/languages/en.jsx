@@ -79,6 +79,8 @@ export const enVersion = {
   lost_connect_description:
     "Unable to establish a connection with the device. Please verify that the device is powered on and the server connection is stable.",
   lost_connect: "Oops! Connection Lost",
+  ontinue_editing: "Continue Editing",
+  auto_redirect_in: "Auto-redirecting in",
   messMyID: "The My ID must be within 0 and 99",
   messCallID: "The Call ID must be within 0 and 99",
   manet_id: "Manet ID",

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   MdCellTower,
@@ -28,6 +28,7 @@ import {
   parseImportedDataHelper,
   handleImportFileHelper,
   exportEditingFileHelper,
+  readFileDraft,
 } from "../helper/settingHelper";
 import {
   getAllCryptoTableFunc,
@@ -57,6 +58,7 @@ import { useConnectionStatus } from "../hooks/useConnectionStatus";
 import { ConnectDeviceModal } from "./NewSessionModal";
 import { useConnection } from "../context/ConnectionContext";
 import { electronAPI } from "../tauri-shim";
+import ConnectionLostModal from "./ConnectionLostModal";
 
 const SAVE_LABELS = {
   radio: "Radio Configuration",
@@ -93,7 +95,7 @@ export const Sidebar = () => {
     stopCurrentActive,
   } = useConnection();
 
-  const MENU_ITEMS = [
+  const MENU_ITEMS = useMemo(() => [
     { id: "radio", icon: MdCellTower, label: "RADIO", path: "radio" },
     {
       id: "freqTable",
@@ -109,7 +111,7 @@ export const Sidebar = () => {
         .toUpperCase(),
       path: "crypto",
     },
-  ];
+  ]);
 
   const getInitialMenu = useCallback(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -135,6 +137,9 @@ export const Sidebar = () => {
     onCancel: () => {},
     showCancel: true,
   });
+  const [showConnectionLostModal, setShowConnectionLostModal] = useState(false);
+  const [wasConnected, setWasConnected] = useState(false);
+  const connectionLostTimerRef = useRef(null);
 
   useEffect(() => {
     const checkOutletState = () => {
@@ -164,6 +169,22 @@ export const Sidebar = () => {
       navigate(menu.path, { replace: true });
     }
   }, [location.pathname, navigate]);
+
+  // Check for connection loss and show modal
+  useEffect(() => {
+    if (!wasConnected && connected) {
+      setWasConnected(true);
+      setShowConnectionLostModal(false);
+      if (connectionLostTimerRef.current) {
+        clearTimeout(connectionLostTimerRef.current);
+      }
+    }
+
+    if (!connected && wasConnected) {
+        setWasConnected(false);
+        setShowConnectionLostModal(true);
+    }
+  }, [connected, wasConnected]);
 
   const handleMenuClick = useCallback((menu) => {
     setSelectedMenu(menu);
@@ -210,7 +231,11 @@ export const Sidebar = () => {
         })
       );
 
-      await electronAPI.createFileDraft(defaultPayload);
+      // Wait for outlet components to process the default data and update editing data
+      // The useDefaultDataMode useEffect needs time to propagate the data
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      saveEditingDataToDraft();
 
       toast.success(t("loadDefaultSuccess"), {
         toastId: TOAST_SUCCESS_ID,
@@ -306,6 +331,22 @@ export const Sidebar = () => {
     }
   };
 
+  // Save current editing data to draft
+  const saveEditingDataToDraft = useCallback(async () => {
+    const editingData = getEditingData();
+    const { allCryptoTable, ...rest } = editingData;
+    if (
+      editingData.allCryptoTable != null &&
+      editingData.channelParameters?.length > 0 &&
+      editingData.frequencyTable?.length > 0
+    ) {
+      await electronAPI.createFileDraft({
+        ...rest,
+        cryptoTable: allCryptoTable,
+      });
+    }
+  }, [getEditingData]);
+
   const handleImport = async () => {
     try {
       setIsLoanding(true);
@@ -346,7 +387,7 @@ export const Sidebar = () => {
         cryptoTable: importedData.cryptoTable,
         channelParameters: importedData.channelParameters,
       });
-      
+
       activateDefaultMode(importPayload);
       enableOutlets();
 
@@ -359,13 +400,7 @@ export const Sidebar = () => {
         })
       );
 
-      if (
-        importPayload.cryptoTable != null &&
-        importPayload.channelParameters?.length > 0 &&
-        importPayload.frequencyTable?.length > 0
-      ) {
-        await electronAPI.createFileDraft(importPayload);
-      }
+      saveEditingDataToDraft();
 
       toast.success(
         fileContent?.jwe
@@ -484,6 +519,49 @@ export const Sidebar = () => {
     });
   };
 
+  const handleContinueEditing = useCallback(() => {
+    setShowConnectionLostModal(false);
+    setWasConnected(false);
+    if (connectionLostTimerRef.current) {
+      clearTimeout(connectionLostTimerRef.current);
+    }
+  }, []);
+
+  const handleGoBackToConnection = useCallback(() => {
+    setShowConnectionLostModal(false);
+    setWasConnected(false);
+    if (connectionLostTimerRef.current) {
+      clearTimeout(connectionLostTimerRef.current);
+    }
+    navigate("/connection", { replace: true });
+  }, [navigate]);
+
+  // Timer for auto-redirect after 10 seconds
+  useEffect(() => {
+    if (!showConnectionLostModal) {
+      if (connectionLostTimerRef.current) {
+        clearTimeout(connectionLostTimerRef.current);
+      }
+      return;
+    }
+
+    connectionLostTimerRef.current = setTimeout(() => {
+      if (showConnectionLostModal) {
+        saveEditingDataToDraft().then(() => handleGoBackToConnection());
+      }
+    }, 10000);
+
+    return () => {
+      if (connectionLostTimerRef.current) {
+        clearTimeout(connectionLostTimerRef.current);
+      }
+    };
+  }, [
+    showConnectionLostModal,
+    saveEditingDataToDraft,
+    handleGoBackToConnection,
+  ]);
+
   return (
     <>
       <ConfirmDialog
@@ -508,6 +586,14 @@ export const Sidebar = () => {
           sessions={sessions}
           activeSession={activeSession}
           setConfirmDialog={setConfirmDialog}
+        />
+      )}
+      {showConnectionLostModal && (
+        <ConnectionLostModal
+          onContinueEditing={handleContinueEditing}
+          onGoBackToConnection={handleGoBackToConnection}
+          hasUnsavedData={true}
+          onSaveDraft={saveEditingDataToDraft}
         />
       )}
       <SaveAllProgress />
@@ -600,16 +686,8 @@ export const Sidebar = () => {
                 className="system-backup-btn"
                 disabled={isLoading || isSavingAll}
                 onClick={async () => {
-                  const editingData = getEditingData();
                   setShowModal(true);
-                  if (
-                    !connected &&
-                    editingData.allCryptoTable != null &&
-                    editingData.channelParameters?.length > 0 &&
-                    editingData.frequencyTable?.length > 0
-                  ) {
-                    await electronAPI.createFileDraft(editingData);
-                  }
+                  saveEditingDataToDraft();
                 }}
               >
                 <MdLink style={{ marginRight: "5px" }} size={20} />
@@ -629,16 +707,8 @@ export const Sidebar = () => {
             <button
               className="system-backup-btn"
               onClick={async () => {
-                const editingData = getEditingData();
                 stopCurrentActive();
-                if (
-                  !connected &&
-                  editingData.allCryptoTable != null &&
-                  editingData.channelParameters?.length > 0 &&
-                  editingData.frequencyTable?.length > 0
-                ) {
-                  await electronAPI.createFileDraft(editingData);
-                }
+                saveEditingDataToDraft();
                 navigate("/connection");
               }}
               disabled={isLoading || isSavingAll}
