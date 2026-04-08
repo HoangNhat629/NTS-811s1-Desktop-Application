@@ -128,26 +128,25 @@ export const FREQPage = () => {
       const draftFile = await readFileDraft();
 
       if (draftFile?.isExist && draftFile?.data?.frequencyTable) {
-        Object.entries(draftFile.data.frequencyTable).forEach(
-          ([tableId, table]) => {
-            const formattedFreqs = table.freqs.map((freq, idx) => ({
-              idx,
-              frequency: freq,
-            }));
-            const freqValues = formattedFreqs.map((f) => f.frequency);
-            const meta = calculateFreqTableMeta(freqValues);
-            cacheRef.current[tableId] = {
-              source: "draft",
-              data: formattedFreqs,
-              freq_min: meta.freq_min,
-              freq_max: meta.freq_max,
-              step_min: meta.step_min,
-              cfg_freq: meta.freq_min,
-              cfg_step: meta.step_min,
-              isGenerated: false,
-            };
-          }
-        );
+        const { frequencyTable } = draftFile.data;
+        for (const tableId in frequencyTable) {
+          const table = frequencyTable[tableId];
+          const formattedFreqs = (table?.freqs || []).map((freq, idx) => ({
+            idx,
+            frequency: freq,
+          }));
+          const meta = calculateFreqTableMeta((table?.freqs || []));
+          cacheRef.current[tableId] = {
+            source: "draft",
+            data: formattedFreqs,
+            freq_min: meta.freq_min,
+            freq_max: meta.freq_max,
+            step_min: meta.step_min,
+            cfg_freq: meta.freq_min,
+            cfg_step: meta.step_min,
+            isGenerated: false,
+          };
+        }
       }
     } catch (e) {
       console.error("Draft hydrate failed", e);

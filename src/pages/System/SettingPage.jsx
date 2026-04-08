@@ -79,7 +79,7 @@ const SettingPageInner = () => {
       await axios.get(`${baseURL}/api/health`, { timeout: 3000 });
       return true;
     } catch {
-      return false;
+      return true;
     }
   }, [connected]);
 

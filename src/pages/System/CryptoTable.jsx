@@ -78,15 +78,14 @@ export const CryptoTable = () => {
     try {
       const draftFile = await readFileDraft();
       if (draftFile?.isExist && draftFile?.data?.cryptoTable) {
-        Object.entries(draftFile.data.cryptoTable).forEach(
-          ([keyType, table]) => {
-            cacheRef.current[keyType] = {
-              source: "draft",
-              data: table,
-              isGenerated: false,
-            };
-          }
-        );
+        const { cryptoTable } = draftFile.data;
+        for (const keyType in cryptoTable) {
+          cacheRef.current[keyType] = {
+            source: "draft",
+            data: cryptoTable[keyType],
+            isGenerated: false,
+          };
+        }
       }
     } catch (err) {
       console.error("Draft hydrate failed:", err);

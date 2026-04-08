@@ -170,22 +170,6 @@ export const Sidebar = () => {
     }
   }, [location.pathname, navigate]);
 
-  // Check for connection loss and show modal
-  useEffect(() => {
-    if (!wasConnected && connected) {
-      setWasConnected(true);
-      setShowConnectionLostModal(false);
-      if (connectionLostTimerRef.current) {
-        clearTimeout(connectionLostTimerRef.current);
-      }
-    }
-
-    if (!connected && wasConnected) {
-        setWasConnected(false);
-        setShowConnectionLostModal(true);
-    }
-  }, [connected, wasConnected]);
-
   const handleMenuClick = useCallback((menu) => {
     setSelectedMenu(menu);
     localStorage.setItem(STORAGE_KEY, menu);
@@ -228,7 +212,7 @@ export const Sidebar = () => {
       window.dispatchEvent(
         new CustomEvent("systemDataImported", {
           detail: { type: "default", data: defaultPayload },
-        })
+        }),
       );
 
       // Wait for outlet components to process the default data and update editing data
@@ -301,7 +285,7 @@ export const Sidebar = () => {
 
     handleExportHelper(
       JSON.stringify({ jwe: token }, null, 2),
-      `system_backup_${parseInt((Date.now() / 1000).toFixed(0))}.json`
+      `system_backup_${parseInt((Date.now() / 1000).toFixed(0))}.json`,
     );
 
     toast.success(t("successCryptExport"), {
@@ -334,17 +318,19 @@ export const Sidebar = () => {
   // Save current editing data to draft
   const saveEditingDataToDraft = useCallback(async () => {
     const editingData = getEditingData();
-    const { allCryptoTable, ...rest } = editingData;
+    // Early validation before destructuring
     if (
-      editingData.allCryptoTable != null &&
-      editingData.channelParameters?.length > 0 &&
-      editingData.frequencyTable?.length > 0
+      editingData.allCryptoTable == null ||
+      !editingData.channelParameters?.length ||
+      !editingData.frequencyTable?.length
     ) {
-      await electronAPI.createFileDraft({
-        ...rest,
-        cryptoTable: allCryptoTable,
-      });
+      return;
     }
+    const { allCryptoTable, ...rest } = editingData;
+    await electronAPI.createFileDraft({
+      ...rest,
+      cryptoTable: allCryptoTable,
+    });
   }, [getEditingData]);
 
   const handleImport = async () => {
@@ -397,7 +383,7 @@ export const Sidebar = () => {
             type: fileContent?.jwe ? "encrypted" : "editing",
             data: importPayload,
           },
-        })
+        }),
       );
 
       saveEditingDataToDraft();
@@ -406,7 +392,7 @@ export const Sidebar = () => {
         fileContent?.jwe
           ? "Encrypted import successful!"
           : "Editing file import successful!",
-        { toastId: TOAST_SUCCESS_ID }
+        { toastId: TOAST_SUCCESS_ID },
       );
     } catch (err) {
       console.error("Import error:", err);
@@ -433,7 +419,7 @@ export const Sidebar = () => {
         updateItemStatus(
           progress.index,
           progress.status,
-          progress.error || null
+          progress.error || null,
         );
       });
 
@@ -457,7 +443,7 @@ export const Sidebar = () => {
           `${successful.length}/${results.length} saved. Failed: ${failedLabels}`,
           {
             toastId: TOAST_WARNING_ID,
-          }
+          },
         );
       } else {
         toast.error(t("failed_to_save_all_configurations"), {
@@ -508,7 +494,7 @@ export const Sidebar = () => {
           }
         } catch (err) {
           console.log(
-            err.message || err || "An error occurred. Please try again."
+            err.message || err || "An error occurred. Please try again.",
           );
           return;
         } finally {
@@ -536,6 +522,32 @@ export const Sidebar = () => {
     navigate("/connection", { replace: true });
   }, [navigate]);
 
+  const draftCheckResultRef = useRef(null);
+  const draftCheckTimestampRef = useRef(0);
+  const DRAFT_CACHE_TTL = 5000; // Cache result for 5 seconds
+
+  const isLocalModeAvailable = useCallback(async () => {
+    const now = Date.now();
+    // Return cached result if still valid
+    if (
+      draftCheckResultRef.current !== null &&
+      now - draftCheckTimestampRef.current < DRAFT_CACHE_TTL
+    ) {
+      return draftCheckResultRef.current;
+    }
+    try {
+      const draft = await readFileDraft();
+      const result = Boolean(draft?.isExist);
+      draftCheckResultRef.current = result;
+      draftCheckTimestampRef.current = now;
+      return result;
+    } catch {
+      draftCheckResultRef.current = false;
+      draftCheckTimestampRef.current = now;
+      return false;
+    }
+  }, []);
+
   // Timer for auto-redirect after 10 seconds
   useEffect(() => {
     if (!showConnectionLostModal) {
@@ -561,6 +573,36 @@ export const Sidebar = () => {
     saveEditingDataToDraft,
     handleGoBackToConnection,
   ]);
+
+  // Check for connection loss and show modal
+  useEffect(() => {
+    const checkConnection = async () => {
+      // reconnect
+      if (!wasConnected && connected) {
+        setWasConnected(true);
+        setShowConnectionLostModal(false);
+
+        if (connectionLostTimerRef.current) {
+          clearTimeout(connectionLostTimerRef.current);
+        }
+        return;
+      }
+
+      // connection lost
+      if (!connected && wasConnected) {
+        const localModeAvailable = await isLocalModeAvailable();
+
+        if (localModeAvailable) {
+          setWasConnected(false);
+          setShowConnectionLostModal(true);
+        } else {
+          navigate("/connection", { replace: true });
+        }
+      }
+    };
+
+    checkConnection();
+  }, [connected, wasConnected, isLocalModeAvailable, navigate]);
 
   return (
     <>
