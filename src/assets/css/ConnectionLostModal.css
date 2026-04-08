@@ -78,6 +78,37 @@
   color: var(--label-color);
   font-size: 12px;
   font-style: italic;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.countdown-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.countdown-circle {
+  transform: rotate(-90deg);
+}
+
+.countdown-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-color-2);
+}
+
+.countdown-label {
+  font-size: 11px;
+  color: var(--label-color);
+  text-align: center;
 }
 
 @keyframes fadeIn {
